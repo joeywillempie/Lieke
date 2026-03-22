@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+  background-color: #FFF7ED;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Klik-cursor op alle interactieve elementen */
+button, a, [role="button"] {
+  cursor: pointer;
+}
+
+/* Verberg scrollbar voor jaar-nav */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Jaar-knop animaties */
+@keyframes year-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25) rotate(-4deg); }
+  65%  { transform: scale(0.92) rotate(3deg); }
+  80%  { transform: scale(1.08) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes year-wiggle {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(-6deg); }
+  40%  { transform: rotate(6deg); }
+  60%  { transform: rotate(-4deg); }
+  80%  { transform: rotate(4deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.year-pop {
+  animation: year-pop 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.year-btn:hover:not(.year-pop) {
+  animation: year-wiggle 0.4s ease-in-out;
+}
+
+/* Verjaardag popup animatie */
+@keyframes bounce-in {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  80%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
