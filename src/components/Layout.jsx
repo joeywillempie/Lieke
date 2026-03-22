@@ -37,7 +37,7 @@ export default function Layout({ children, onTitleClick }) {
               className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
                 onCalendar
                   ? 'bg-white text-purple-600 shadow-md'
-                  : 'bg-white/20 text-white hover:bg-white/30 border border-white/30'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-md'
               }`}
             >
               <CalendarDays className="w-4 h-4" />
