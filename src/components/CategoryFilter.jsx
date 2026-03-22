@@ -36,6 +36,8 @@ export default function CategoryFilter({ selectedCategories, onToggle, vertical 
             <button
               key={cat}
               onClick={() => onToggle(cat)}
+              aria-label={`Filter op ${cat}`}
+              aria-pressed={isSelected}
               className={`text-left px-3 py-2 rounded-xl text-sm font-bold transition-all leading-snug flex items-center gap-2 ${
                 isSelected ? `${cfg.active} shadow-sm` : `${cfg.inactive}`
               }`}
@@ -58,6 +60,8 @@ export default function CategoryFilter({ selectedCategories, onToggle, vertical 
           <button
             key={cat}
             onClick={() => onToggle(cat)}
+            aria-label={`Filter op ${cat}`}
+            aria-pressed={isSelected}
             className={`px-3 py-1.5 rounded-full text-sm font-bold border-2 transition-all flex items-center gap-1.5 ${
               isSelected
                 ? `${cfg.active} border-transparent shadow-sm scale-105`

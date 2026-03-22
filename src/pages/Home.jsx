@@ -4,7 +4,7 @@ import YearNav from '../components/YearNav'
 import CategoryFilter from '../components/CategoryFilter'
 import TipCard from '../components/TipCard'
 import EmptyState from '../components/EmptyState'
-import { Loader2 } from 'lucide-react'
+import { Loader2, SlidersHorizontal, X } from 'lucide-react'
 
 function TipsGrid({ tips }) {
   if (tips.length === 0) return null
@@ -30,6 +30,7 @@ export default function Home() {
   const [error, setError] = useState(null)
   const [activeYear, setActiveYear] = useState('all')
   const [selectedCategories, setSelectedCategories] = useState([])
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
 
   useEffect(() => {
     fetchTips()
@@ -92,9 +93,45 @@ export default function Home() {
         totalCount={tips.length}
       />
 
+      {/* Mobiele filter-knop (alleen zichtbaar op telefoon) */}
+      <div className="md:hidden px-3 pt-2">
+        <button
+          onClick={() => setMobileFilterOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-stone-200 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          Categorieën
+          {selectedCategories.length > 0 && (
+            <span className="bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              {selectedCategories.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Mobiel filter-menu (overlay) */}
+      {mobileFilterOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setMobileFilterOpen(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-64 bg-white shadow-xl animate-slide-in-left">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100">
+              <span className="font-bold text-stone-700">Categorieën</span>
+              <button onClick={() => setMobileFilterOpen(false)} className="p-1 rounded-lg hover:bg-stone-100">
+                <X className="w-5 h-5 text-stone-400" />
+              </button>
+            </div>
+            <CategoryFilter
+              vertical
+              selectedCategories={selectedCategories}
+              onToggle={toggleCategory}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex min-h-0">
-        {/* Linker sidebar: categorieën */}
-        <aside className="w-44 flex-shrink-0 bg-white/70 border-r border-stone-100 backdrop-blur-sm">
+        {/* Linker sidebar: categorieën (alleen op desktop) */}
+        <aside className="hidden md:block w-44 flex-shrink-0 bg-white/70 border-r border-stone-100 backdrop-blur-sm">
           <CategoryFilter
             vertical
             selectedCategories={selectedCategories}

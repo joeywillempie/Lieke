@@ -47,6 +47,8 @@ export default function YearNav({ activeYear, onYearChange, tipCounts, totalCoun
           <button
             key={year}
             onClick={() => handleClick(year)}
+            aria-label={year === 'all' ? 'Toon alle tips' : `Toon tips voor jaar ${year}`}
+            aria-pressed={isActive}
             className={`year-btn flex-1 flex items-center justify-center py-1.5 rounded-xl text-[11px] font-bold transition-all shadow-sm ${
               isActive ? `${colors.active} shadow-md scale-105` : `${colors.inactive}`
             } ${isPopping ? 'year-pop' : ''}`}

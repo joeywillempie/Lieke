@@ -69,11 +69,17 @@ export default function Settings() {
         .sort((a, b) => Number(a) - Number(b))
       if (grouped['overig']) sortedYears.push('overig')
 
-      function tipToHTML(tip) {
+      // Voorkom XSS door HTML-tekens te escapen
+    function esc(str) {
+      if (!str) return ''
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    }
+
+    function tipToHTML(tip) {
         const typeLabel = tip.type === 'youtube' ? '🎬 YouTube' : tip.type === 'podcast' ? '🎙️ Podcast' : '📄 Artikel'
-        const categories = tip.categories?.length ? tip.categories.join(', ') : ''
+        const categories = tip.categories?.length ? tip.categories.map(esc).join(', ') : ''
         const proven = tip.proven ? ' ✅ Bewezen' : ''
-        const noteHtml = tip.note ? tip.note.replace(/\n/g, '<br>') : ''
+        const noteHtml = tip.note ? esc(tip.note).replace(/\n/g, '<br>') : ''
         return `
           <div style="margin-bottom:20px;padding:14px 18px;border:1px solid #e5e5e5;border-radius:12px;page-break-inside:avoid;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
@@ -81,10 +87,10 @@ export default function Settings() {
               ${categories ? `<span style="font-size:11px;color:#999;">• ${categories}</span>` : ''}
               ${proven ? `<span style="font-size:12px;">${proven}</span>` : ''}
             </div>
-            <div style="font-size:16px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;">${tip.title}</div>
+            <div style="font-size:16px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;">${esc(tip.title)}</div>
             ${noteHtml ? `<div style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.6;white-space:pre-wrap;">${noteHtml}</div>` : ''}
-            ${tip.source_label ? `<div style="font-size:12px;color:#999;margin-bottom:4px;">Bron: ${tip.source_label}</div>` : ''}
-            ${tip.url ? `<div style="font-size:12px;color:#7c3aed;word-break:break-all;">${tip.url}</div>` : ''}
+            ${tip.source_label ? `<div style="font-size:12px;color:#999;margin-bottom:4px;">Bron: ${esc(tip.source_label)}</div>` : ''}
+            ${tip.url ? `<div style="font-size:12px;color:#7c3aed;word-break:break-all;">${esc(tip.url)}</div>` : ''}
           </div>`
       }
 

@@ -3,8 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Youtube, Mic, FileText } from 'lucide-react'
 import { getYoutubeId, fetchUrlMetadata } from '../lib/helpers'
 
-// Gedeelde cache zodat dezelfde URL niet meerdere keren opgehaald wordt
+// Gedeelde cache met max 100 items (LRU-achtig: oudste wordt verwijderd)
+const MAX_CACHE = 100
 const thumbnailCache = new Map()
+function cacheSet(key, value) {
+  if (thumbnailCache.size >= MAX_CACHE) {
+    const oldest = thumbnailCache.keys().next().value
+    thumbnailCache.delete(oldest)
+  }
+  thumbnailCache.set(key, value)
+}
 
 const TYPE_CONFIG = {
   youtube: { icon: Youtube, label: 'YouTube', badge: 'bg-red-500 text-white', border: 'border-t-[3px] border-red-400', glow: 'from-red-50' },
@@ -58,7 +66,7 @@ export default function TipCard({ tip, featured = false }) {
     fetchUrlMetadata(tip.url).then((meta) => {
       if (cancelled) return
       const img = meta?.thumbnail_url || null
-      thumbnailCache.set(tip.url, img)
+      cacheSet(tip.url, img)
       if (img) setResolvedThumbnail(img)
     })
     return () => { cancelled = true }

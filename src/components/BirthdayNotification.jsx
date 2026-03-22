@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import confetti from 'canvas-confetti'
-
-const BIRTH_DATE = new Date(2026, 0, 20) // 20 januari 2026
+import { BIRTH_DATE } from '../constants/config'
 
 function getLiekesAge(now) {
   const months =

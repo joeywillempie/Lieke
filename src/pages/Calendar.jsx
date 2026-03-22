@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, ChevronRight, Plus, X, Clock, MapPin, FileText, Pencil } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import TimePicker from '../components/TimePicker'
-
-const BIRTH_DATE = new Date(2026, 0, 20)
+import { BIRTH_DATE } from '../constants/config'
 
 const DAYS = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
 const MONTHS = [
@@ -40,6 +39,7 @@ export default function Calendar() {
   const [saving, setSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [saveError, setSaveError] = useState(null)
+  const [loadError, setLoadError] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const formRef = useRef(null)
 
@@ -52,6 +52,7 @@ export default function Calendar() {
   }, [showForm])
 
   async function loadEvents() {
+    setLoadError(null)
     const from = toDateStr(viewYear, viewMonth, 1)
     const to = toDateStr(viewYear, viewMonth, getDaysInMonth(viewYear, viewMonth))
     const { data, error } = await supabase
@@ -60,7 +61,10 @@ export default function Calendar() {
       .gte('date', from)
       .lte('date', to)
       .order('time', { nullsFirst: true })
-    if (error) console.error('Laden mislukt:', error)
+    if (error) {
+      console.error('Laden mislukt:', error)
+      setLoadError('Kalender kon niet geladen worden. Probeer het opnieuw.')
+    }
     setEvents(data || [])
   }
 
@@ -112,7 +116,11 @@ export default function Calendar() {
   }
 
   async function deleteEvent(id) {
-    await supabase.from('calendar_events').delete().eq('id', id)
+    const { error } = await supabase.from('calendar_events').delete().eq('id', id)
+    if (error) {
+      setSaveError('Verwijderen mislukt: ' + error.message)
+      return
+    }
     if (editingId === id) cancelForm()
     loadEvents()
   }
@@ -149,7 +157,7 @@ export default function Calendar() {
     <div className="p-4 max-w-lg mx-auto">
       {/* Maand navigatie */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-orange-100 transition-colors">
+        <button onClick={prevMonth} aria-label="Vorige maand" className="p-2 rounded-xl hover:bg-orange-100 transition-colors">
           <ChevronLeft className="w-5 h-5 text-orange-500" />
         </button>
         <div className="text-center">
@@ -162,7 +170,7 @@ export default function Calendar() {
             </p>
           )}
         </div>
-        <button onClick={nextMonth} className="p-2 rounded-xl hover:bg-orange-100 transition-colors">
+        <button onClick={nextMonth} aria-label="Volgende maand" className="p-2 rounded-xl hover:bg-orange-100 transition-colors">
           <ChevronRight className="w-5 h-5 text-orange-500" />
         </button>
       </div>
@@ -207,6 +215,14 @@ export default function Calendar() {
           )
         })}
       </div>
+
+      {/* Laad-foutmelding */}
+      {loadError && (
+        <div className="mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600 flex items-center justify-between">
+          <span>{loadError}</span>
+          <button onClick={loadEvents} className="text-red-500 font-bold underline text-xs ml-2">Opnieuw</button>
+        </div>
+      )}
 
       {/* Dag detail */}
       {selectedDay && (
@@ -308,10 +324,10 @@ export default function Calendar() {
                     </div>
                   </div>
                   <div className="flex gap-1 mt-0.5">
-                    <button onClick={() => startEdit(ev)} className="text-stone-300 hover:text-orange-400 transition-colors">
+                    <button onClick={() => startEdit(ev)} aria-label={`Bewerk ${ev.what}`} className="text-stone-300 hover:text-orange-400 transition-colors">
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => deleteEvent(ev.id)} className="text-stone-300 hover:text-red-400 transition-colors">
+                    <button onClick={() => deleteEvent(ev.id)} aria-label={`Verwijder ${ev.what}`} className="text-stone-300 hover:text-red-400 transition-colors">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
