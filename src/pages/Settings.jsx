@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { Printer, Download, CheckCircle, Loader2 } from 'lucide-react'
+import { Printer, Download, CheckCircle, Loader2, Upload, AlertTriangle } from 'lucide-react'
 
 export default function Settings() {
   const [exporting, setExporting] = useState(false)
-  const [exported, setExported] = useState(null) // 'json' | 'print'
+  const [exported, setExported] = useState(null)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const fileInputRef = useRef(null)
 
   async function exportJSON() {
     setExporting(true)
@@ -46,7 +49,6 @@ export default function Settings() {
         return
       }
 
-      // Groepeer per jaar
       const grouped = {}
       const alwaysRelevant = []
 
@@ -69,28 +71,30 @@ export default function Settings() {
         .sort((a, b) => Number(a) - Number(b))
       if (grouped['overig']) sortedYears.push('overig')
 
-      // Voorkom XSS door HTML-tekens te escapen
-    function esc(str) {
-      if (!str) return ''
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-    }
+      function esc(str) {
+        if (!str) return ''
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      }
 
-    function tipToHTML(tip) {
+      function tipToHTML(tip) {
         const typeLabel = tip.type === 'youtube' ? '🎬 YouTube' : tip.type === 'podcast' ? '🎙️ Podcast' : '📄 Artikel'
         const categories = tip.categories?.length ? tip.categories.map(esc).join(', ') : ''
         const proven = tip.proven ? ' ✅ Bewezen' : ''
         const noteHtml = tip.note ? esc(tip.note).replace(/\n/g, '<br>') : ''
+        const tags = tip.tags?.length ? tip.tags.map(t => `#${esc(t)}`).join(' ') : ''
         return `
           <div style="margin-bottom:20px;padding:14px 18px;border:1px solid #e5e5e5;border-radius:12px;page-break-inside:avoid;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
               <span style="font-size:12px;color:#888;">${typeLabel}</span>
               ${categories ? `<span style="font-size:11px;color:#999;">• ${categories}</span>` : ''}
               ${proven ? `<span style="font-size:12px;">${proven}</span>` : ''}
+              ${tip.favorited ? '<span style="font-size:12px;">⭐</span>' : ''}
             </div>
             <div style="font-size:16px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;">${esc(tip.title)}</div>
             ${noteHtml ? `<div style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.6;white-space:pre-wrap;">${noteHtml}</div>` : ''}
             ${tip.source_label ? `<div style="font-size:12px;color:#999;margin-bottom:4px;">Bron: ${esc(tip.source_label)}</div>` : ''}
             ${tip.url ? `<div style="font-size:12px;color:#7c3aed;word-break:break-all;">${esc(tip.url)}</div>` : ''}
+            ${tags ? `<div style="font-size:11px;color:#ea580c;margin-top:6px;">${tags}</div>` : ''}
           </div>`
       }
 
@@ -149,6 +153,55 @@ export default function Settings() {
     setExporting(false)
   }
 
+  async function handleImport(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setImporting(true)
+    setImportResult(null)
+
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+
+      if (!data.tips || !Array.isArray(data.tips)) {
+        setImportResult({ type: 'error', message: 'Ongeldig bestandsformaat. Verwacht een JSON-bestand met "tips" array.' })
+        setImporting(false)
+        return
+      }
+
+      let tipsImported = 0
+      let eventsImported = 0
+      let errors = 0
+
+      for (const tip of data.tips) {
+        const { id, created_at, ...tipData } = tip
+        const { error } = await supabase.from('tips').insert(tipData)
+        if (error) errors++
+        else tipsImported++
+      }
+
+      if (data.calendar_events?.length) {
+        for (const event of data.calendar_events) {
+          const { id, ...eventData } = event
+          const { error } = await supabase.from('calendar_events').insert(eventData)
+          if (error) errors++
+          else eventsImported++
+        }
+      }
+
+      setImportResult({
+        type: 'success',
+        message: `✅ ${tipsImported} tips${eventsImported > 0 ? ` en ${eventsImported} kalenderitems` : ''} geïmporteerd${errors > 0 ? ` (${errors} fouten)` : ''}`,
+      })
+    } catch (err) {
+      setImportResult({ type: 'error', message: 'Kon bestand niet lezen: ' + err.message })
+    }
+
+    setImporting(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   return (
     <div className="p-4 pb-8 max-w-lg mx-auto">
       <h1 className="font-serif font-bold text-2xl text-stone-800 mb-1">Instellingen</h1>
@@ -163,7 +216,6 @@ export default function Settings() {
           Maak een backup van al je tips en kalenderitems.
         </p>
 
-        {/* Print naar PDF */}
         <button
           onClick={exportPrint}
           disabled={exporting}
@@ -178,7 +230,6 @@ export default function Settings() {
           </div>
         </button>
 
-        {/* JSON backup */}
         <button
           onClick={exportJSON}
           disabled={exporting}
@@ -199,6 +250,60 @@ export default function Settings() {
             Bezig met exporteren...
           </div>
         )}
+      </div>
+
+      {/* Import sectie */}
+      <div className="mt-5 bg-white rounded-2xl shadow-md p-5 space-y-4">
+        <h2 className="font-bold text-stone-700 text-base flex items-center gap-2">
+          📥 Data importeren
+        </h2>
+        <p className="text-stone-500 text-sm">
+          Herstel een backup of importeer tips uit een JSON-bestand.
+        </p>
+
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importing}
+          className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-all text-left group disabled:opacity-50"
+        >
+          <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+            {importing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
+          </div>
+          <div className="flex-1">
+            <div className="font-bold text-blue-700 text-sm">Importeer JSON backup</div>
+            <div className="text-blue-500 text-xs">Voeg tips toe vanuit een eerder geëxporteerd bestand</div>
+          </div>
+        </button>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleImport}
+          className="hidden"
+        />
+
+        {importResult && (
+          <div className={`flex items-start gap-2 p-3 rounded-xl text-sm ${
+            importResult.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            {importResult.type === 'success' ? (
+              <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            )}
+            <span>{importResult.message}</span>
+          </div>
+        )}
+
+        <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
+          <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-700">
+            Let op: importeren voegt tips toe aan je bestaande collectie. Bestaande tips worden niet overschreven of verwijderd.
+          </p>
+        </div>
       </div>
 
       {/* Info */}

@@ -4,9 +4,10 @@ import YearNav from '../components/YearNav'
 import CategoryFilter from '../components/CategoryFilter'
 import TipCard from '../components/TipCard'
 import EmptyState from '../components/EmptyState'
-import { Loader2, SlidersHorizontal, X } from 'lucide-react'
+import AgeReminder from '../components/AgeReminder'
+import { Loader2, SlidersHorizontal, X, Search, Star } from 'lucide-react'
 
-function TipsGrid({ tips }) {
+function TipsGrid({ tips, onToggleFavorite }) {
   if (tips.length === 0) return null
   const isOdd = tips.length % 2 !== 0
 
@@ -16,7 +17,7 @@ function TipsGrid({ tips }) {
         const isLastOdd = isOdd && i === tips.length - 1
         return (
           <div key={tip.id} className={`flex flex-col ${isLastOdd ? 'col-span-2' : ''}`}>
-            <TipCard tip={tip} featured={isLastOdd} />
+            <TipCard tip={tip} featured={isLastOdd} onToggleFavorite={onToggleFavorite} />
           </div>
         )
       })}
@@ -31,6 +32,8 @@ export default function Home() {
   const [activeYear, setActiveYear] = useState('all')
   const [selectedCategories, setSelectedCategories] = useState([])
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
   useEffect(() => {
     fetchTips()
@@ -51,6 +54,19 @@ export default function Home() {
     setLoading(false)
   }
 
+  async function handleToggleFavorite(tipId) {
+    const tip = tips.find(t => t.id === tipId)
+    if (!tip) return
+    const newVal = !tip.favorited
+    // Optimistic update
+    setTips(prev => prev.map(t => t.id === tipId ? { ...t, favorited: newVal } : t))
+    const { error } = await supabase.from('tips').update({ favorited: newVal }).eq('id', tipId)
+    if (error) {
+      // Revert on error
+      setTips(prev => prev.map(t => t.id === tipId ? { ...t, favorited: !newVal } : t))
+    }
+  }
+
   const tipCounts = useMemo(() => {
     const counts = {}
     counts['always'] = tips.filter((t) => t.always_relevant).length
@@ -60,14 +76,32 @@ export default function Home() {
     return counts
   }, [tips])
 
+  // Zoekfilter
+  const searchLower = searchQuery.toLowerCase().trim()
+
+  let filteredTips = tips
+  if (searchLower) {
+    filteredTips = filteredTips.filter(t =>
+      t.title?.toLowerCase().includes(searchLower) ||
+      t.note?.toLowerCase().includes(searchLower) ||
+      t.source_label?.toLowerCase().includes(searchLower) ||
+      t.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+      t.categories?.some(cat => cat.toLowerCase().includes(searchLower))
+    )
+  }
+
+  if (showFavoritesOnly) {
+    filteredTips = filteredTips.filter(t => t.favorited)
+  }
+
   let visibleTips = []
   let alwaysRelevantTips = []
 
   if (activeYear === 'all') {
-    visibleTips = tips
+    visibleTips = filteredTips
   } else {
-    alwaysRelevantTips = tips.filter((t) => t.always_relevant)
-    visibleTips = tips.filter((t) => !t.always_relevant && t.years?.includes(activeYear))
+    alwaysRelevantTips = filteredTips.filter((t) => t.always_relevant)
+    visibleTips = filteredTips.filter((t) => !t.always_relevant && t.years?.includes(activeYear))
   }
 
   if (selectedCategories.length > 0) {
@@ -93,14 +127,45 @@ export default function Home() {
         totalCount={tips.length}
       />
 
-      {/* Mobiele filter-knop (alleen zichtbaar op telefoon) */}
-      <div className="md:hidden px-3 pt-2">
+      {/* Zoekbalk + favorieten toggle + filter */}
+      <div className="px-3 pt-2 flex gap-2 items-center">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Zoek in tips..."
+            className="w-full pl-9 pr-8 py-2 rounded-full bg-white border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 shadow-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
+              <X className="w-3.5 h-3.5 text-stone-400" />
+            </button>
+          )}
+        </div>
+        <button
+          onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          aria-label="Toon alleen favorieten"
+          aria-pressed={showFavoritesOnly}
+          className={`flex-shrink-0 p-2.5 rounded-full border shadow-sm transition-all ${
+            showFavoritesOnly
+              ? 'bg-amber-400 border-amber-400 text-white'
+              : 'bg-white border-stone-200 text-stone-400 hover:bg-amber-50'
+          }`}
+        >
+          <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-white' : ''}`} />
+        </button>
+
+        {/* Mobiele filter-knop */}
         <button
           onClick={() => setMobileFilterOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-stone-200 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+          className="md:hidden flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-full bg-white shadow-sm border border-stone-200 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
         >
           <SlidersHorizontal className="w-4 h-4" />
-          Categorieën
           {selectedCategories.length > 0 && (
             <span className="bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
               {selectedCategories.length}
@@ -108,6 +173,9 @@ export default function Home() {
           )}
         </button>
       </div>
+
+      {/* Leeftijdsherinnering */}
+      <AgeReminder />
 
       {/* Mobiel filter-menu (overlay) */}
       {mobileFilterOpen && (
@@ -153,7 +221,17 @@ export default function Home() {
               </button>
             </div>
           ) : isEmpty ? (
-            <EmptyState year={activeYear} />
+            searchQuery ? (
+              <div className="py-12 text-center">
+                <p className="text-3xl mb-2">🔍</p>
+                <p className="text-stone-500 text-sm">Geen resultaten voor "{searchQuery}"</p>
+                <button onClick={() => setSearchQuery('')} className="text-sm text-pink-500 underline font-bold mt-2">
+                  Zoekopdracht wissen
+                </button>
+              </div>
+            ) : (
+              <EmptyState year={activeYear} />
+            )
           ) : (
             <div className="space-y-6">
               {activeYear !== 'all' && alwaysRelevantTips.length > 0 && (
@@ -161,7 +239,7 @@ export default function Home() {
                   <h2 className="font-serif font-bold text-purple-700 text-base mb-3 flex items-center gap-1.5">
                     <span className="text-lg">⭐</span> Altijd relevant
                   </h2>
-                  <TipsGrid tips={alwaysRelevantTips} />
+                  <TipsGrid tips={alwaysRelevantTips} onToggleFavorite={handleToggleFavorite} />
                 </section>
               )}
 
@@ -172,7 +250,7 @@ export default function Home() {
                       <span className="text-lg">📅</span> Jaar {activeYear}
                     </h2>
                   )}
-                  <TipsGrid tips={visibleTips} />
+                  <TipsGrid tips={visibleTips} onToggleFavorite={handleToggleFavorite} />
                 </section>
               )}
             </div>

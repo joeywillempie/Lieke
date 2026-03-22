@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { detectType, fetchYoutubeMetadata, fetchUrlMetadata, uploadTipImage } from '../lib/helpers'
 import { CATEGORIES } from '../constants/categories'
 import { YEARS } from '../constants/years'
-import { Loader2, Link, CheckSquare, Square, ImagePlus, X } from 'lucide-react'
+import { Loader2, Link, CheckSquare, Square, ImagePlus, X, Plus } from 'lucide-react'
 
 const EMPTY_FORM = {
   title: '',
@@ -18,6 +18,7 @@ const EMPTY_FORM = {
   source_label: '',
   proven: false,
   created_by: '',
+  tags: [],
 }
 
 export default function TipForm({ initialData, onSave }) {
@@ -345,6 +346,62 @@ export default function TipForm({ initialData, onSave }) {
             )
           })}
         </div>
+      </div>
+
+      {/* Tags */}
+      <div>
+        <label className="block text-sm font-bold text-stone-700 mb-1.5">
+          Tags (optioneel)
+        </label>
+        <div className="flex flex-wrap gap-2 mb-2">
+          {(form.tags || []).map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-700 border border-orange-200"
+            >
+              #{tag}
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, tags: f.tags.filter((t) => t !== tag) }))}
+                className="ml-0.5 hover:text-red-500"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Nieuwe tag..."
+            className="flex-1 px-4 py-2 border border-orange-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 focus:border-orange-400 bg-white"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const val = e.target.value.trim().toLowerCase()
+                if (val && !(form.tags || []).includes(val)) {
+                  setForm((f) => ({ ...f, tags: [...(f.tags || []), val] }))
+                  e.target.value = ''
+                }
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              const input = e.currentTarget.previousElementSibling
+              const val = input.value.trim().toLowerCase()
+              if (val && !(form.tags || []).includes(val)) {
+                setForm((f) => ({ ...f, tags: [...(f.tags || []), val] }))
+                input.value = ''
+              }
+            }}
+            className="px-3 py-2 bg-orange-400 text-white rounded-xl hover:bg-orange-500 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-xs text-stone-400 mt-1">Druk op Enter of + om een tag toe te voegen</p>
       </div>
 
       {/* Bewezen */}

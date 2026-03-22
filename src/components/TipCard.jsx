@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle, Youtube, Mic, FileText } from 'lucide-react'
+import { CheckCircle, Youtube, Mic, FileText, Star } from 'lucide-react'
 import { getYoutubeId, fetchUrlMetadata } from '../lib/helpers'
 
 // Gedeelde cache met max 100 items (LRU-achtig: oudste wordt verwijderd)
@@ -20,7 +20,6 @@ const TYPE_CONFIG = {
   text:    { icon: FileText, label: 'Artikel', badge: 'bg-sky-500 text-white', border: 'border-t-[3px] border-sky-400', glow: 'from-sky-50' },
 }
 
-// Vrolijke kleur per categorie
 const CATEGORY_COLORS = [
   'bg-pink-100 text-pink-700',
   'bg-teal-100 text-teal-700',
@@ -39,12 +38,11 @@ function categoryColor(cat) {
   return CATEGORY_COLORS[Math.abs(hash) % CATEGORY_COLORS.length]
 }
 
-export default function TipCard({ tip, featured = false }) {
+export default function TipCard({ tip, featured = false, onToggleFavorite }) {
   const navigate = useNavigate()
   const typeConfig = TYPE_CONFIG[tip.type] || TYPE_CONFIG.text
   const TypeIcon = typeConfig.icon
 
-  // Synchrone fallback voor YouTube
   const staticThumbnail =
     tip.thumbnail_url ||
     (tip.type === 'youtube' && tip.url
@@ -74,6 +72,11 @@ export default function TipCard({ tip, featured = false }) {
 
   const thumbnail = resolvedThumbnail
 
+  function handleFavoriteClick(e) {
+    e.stopPropagation()
+    onToggleFavorite?.(tip.id)
+  }
+
   if (featured) {
     return (
       <div
@@ -81,15 +84,18 @@ export default function TipCard({ tip, featured = false }) {
         onClick={() => navigate(`/tip/${tip.id}`)}
       >
         {thumbnail ? (
-          <div className="w-full aspect-video overflow-hidden">
-            <img
-              src={thumbnail}
-              alt=""
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+          <div className="w-full aspect-video overflow-hidden relative">
+            <img src={thumbnail} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <button onClick={handleFavoriteClick} className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-all">
+              <Star className={`w-4 h-4 ${tip.favorited ? 'text-amber-400 fill-amber-400' : 'text-stone-400'}`} />
+            </button>
           </div>
         ) : (
-          <div className={`w-full h-20 bg-gradient-to-r ${typeConfig.glow} to-white`} />
+          <div className={`w-full h-20 bg-gradient-to-r ${typeConfig.glow} to-white relative`}>
+            <button onClick={handleFavoriteClick} className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-all">
+              <Star className={`w-4 h-4 ${tip.favorited ? 'text-amber-400 fill-amber-400' : 'text-stone-400'}`} />
+            </button>
+          </div>
         )}
 
         <div className="p-5">
@@ -99,9 +105,7 @@ export default function TipCard({ tip, featured = false }) {
               {typeConfig.label}
             </span>
             {tip.categories?.slice(0, 3).map((cat) => (
-              <span key={cat} className={`px-2.5 py-1 rounded-full text-xs font-bold ${categoryColor(cat)}`}>
-                {cat}
-              </span>
+              <span key={cat} className={`px-2.5 py-1 rounded-full text-xs font-bold ${categoryColor(cat)}`}>{cat}</span>
             ))}
           </div>
 
@@ -109,45 +113,48 @@ export default function TipCard({ tip, featured = false }) {
             {tip.title}
           </h2>
 
-          {tip.note && (
-            <p className="text-stone-500 text-sm line-clamp-2 mb-3">{tip.note}</p>
-          )}
+          {tip.note && <p className="text-stone-500 text-sm line-clamp-2 mb-3">{tip.note}</p>}
 
           <div className="flex items-center gap-2">
-            {tip.source_label && (
-              <p className="text-xs text-stone-400 truncate flex-1">{tip.source_label}</p>
-            )}
-            {tip.created_by && (
-              <span className="text-xs text-violet-500 font-bold flex-shrink-0">door {tip.created_by}</span>
-            )}
+            {tip.source_label && <p className="text-xs text-stone-400 truncate flex-1">{tip.source_label}</p>}
+            {tip.created_by && <span className="text-xs text-violet-500 font-bold flex-shrink-0">door {tip.created_by}</span>}
             {tip.proven && (
               <span className="inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2.5 py-1 rounded-full flex-shrink-0">
-                <CheckCircle className="w-3 h-3" />
-                Bewezen
+                <CheckCircle className="w-3 h-3" /> Bewezen
               </span>
             )}
           </div>
+
+          {tip.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {tip.tags.slice(0, 3).map(tag => (
+                <span key={tag} className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">#{tag}</span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )
   }
 
-  // Reguliere kaart (in 2-kolom grid)
   return (
     <div
       className={`bg-white rounded-2xl shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-all active:scale-[0.98] group flex flex-col h-full ${typeConfig.border}`}
       onClick={() => navigate(`/tip/${tip.id}`)}
     >
       {thumbnail ? (
-        <div className="w-full aspect-video overflow-hidden">
-          <img
-            src={thumbnail}
-            alt=""
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
+        <div className="w-full aspect-video overflow-hidden relative">
+          <img src={thumbnail} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <button onClick={handleFavoriteClick} className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white/80 hover:bg-white shadow-sm transition-all">
+            <Star className={`w-3.5 h-3.5 ${tip.favorited ? 'text-amber-400 fill-amber-400' : 'text-stone-400'}`} />
+          </button>
         </div>
       ) : (
-        <div className={`w-full h-10 bg-gradient-to-r ${typeConfig.glow} to-white`} />
+        <div className={`w-full h-10 bg-gradient-to-r ${typeConfig.glow} to-white relative`}>
+          <button onClick={handleFavoriteClick} className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white/80 hover:bg-white shadow-sm transition-all">
+            <Star className={`w-3.5 h-3.5 ${tip.favorited ? 'text-amber-400 fill-amber-400' : 'text-stone-400'}`} />
+          </button>
+        </div>
       )}
 
       <div className="p-3 flex flex-col flex-1">
@@ -162,13 +169,12 @@ export default function TipCard({ tip, featured = false }) {
 
         <div className="flex items-center gap-1 mt-2 flex-wrap">
           {tip.categories?.slice(0, 1).map((cat) => (
-            <span key={cat} className={`px-2 py-0.5 rounded-full text-xs font-bold ${categoryColor(cat)}`}>
-              {cat}
-            </span>
+            <span key={cat} className={`px-2 py-0.5 rounded-full text-xs font-bold ${categoryColor(cat)}`}>{cat}</span>
           ))}
-          {tip.proven && (
-            <CheckCircle className="w-3.5 h-3.5 text-green-500 ml-auto flex-shrink-0" />
-          )}
+          {tip.tags?.slice(0, 1).map(tag => (
+            <span key={tag} className="text-[10px] font-bold text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded-full">#{tag}</span>
+          ))}
+          {tip.proven && <CheckCircle className="w-3.5 h-3.5 text-green-500 ml-auto flex-shrink-0" />}
         </div>
       </div>
     </div>

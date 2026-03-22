@@ -1,4 +1,4 @@
-import { Component, useState } from 'react'
+import { Component, useState, useEffect, createContext, useContext } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
@@ -6,7 +6,14 @@ import TipDetail from './pages/TipDetail'
 import AddTip from './pages/AddTip'
 import Calendar from './pages/Calendar'
 import Settings from './pages/Settings'
+import Stats from './pages/Stats'
 import BirthdayNotification from './components/BirthdayNotification'
+
+// Dark mode context
+export const DarkModeContext = createContext()
+export function useDarkMode() {
+  return useContext(DarkModeContext)
+}
 
 class ErrorBoundary extends Component {
   state = { hasError: false }
@@ -48,6 +55,20 @@ function markBirthdayShown() {
 
 export default function App() {
   const [birthdayVisible, setBirthdayVisible] = useState(() => shouldShowBirthday())
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode')
+    if (saved !== null) return saved === 'true'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', darkMode)
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [darkMode])
 
   function dismiss() {
     markBirthdayShown()
@@ -55,20 +76,23 @@ export default function App() {
   }
 
   return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <BirthdayNotification visible={birthdayVisible} onDismiss={dismiss} />
-        <Layout onTitleClick={() => { if (shouldShowBirthday()) setBirthdayVisible(true) }}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/tip/nieuw" element={<AddTip />} />
-            <Route path="/tip/:id" element={<TipDetail />} />
-            <Route path="/tip/:id/bewerken" element={<AddTip />} />
-            <Route path="/kalender" element={<Calendar />} />
-            <Route path="/instellingen" element={<Settings />} />
-          </Routes>
-        </Layout>
-      </ErrorBoundary>
-    </BrowserRouter>
+    <DarkModeContext.Provider value={{ darkMode, setDarkMode }}>
+      <BrowserRouter>
+        <ErrorBoundary>
+          <BirthdayNotification visible={birthdayVisible} onDismiss={dismiss} />
+          <Layout onTitleClick={() => { if (shouldShowBirthday()) setBirthdayVisible(true) }}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/tip/nieuw" element={<AddTip />} />
+              <Route path="/tip/:id" element={<TipDetail />} />
+              <Route path="/tip/:id/bewerken" element={<AddTip />} />
+              <Route path="/kalender" element={<Calendar />} />
+              <Route path="/instellingen" element={<Settings />} />
+              <Route path="/statistieken" element={<Stats />} />
+            </Routes>
+          </Layout>
+        </ErrorBoundary>
+      </BrowserRouter>
+    </DarkModeContext.Provider>
   )
 }

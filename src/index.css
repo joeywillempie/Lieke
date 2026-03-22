@@ -22,6 +22,13 @@ button, a, [role="button"] {
   cursor: pointer;
 }
 
+/* Focus-ring voor keyboard navigatie (alleen zichtbaar bij tab, niet bij klik) */
+:focus-visible {
+  outline: 2px solid #ec4899;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
 /* Verberg scrollbar voor jaar-nav */
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -77,4 +84,70 @@ button, a, [role="button"] {
 
 .animate-slide-in-left {
   animation: slide-in-left 0.25s ease-out both;
+}
+
+/* Dark mode */
+.dark body {
+  background-color: #1c1917;
+  color: #e7e5e4;
+}
+
+.dark .bg-white {
+  background-color: #292524;
+}
+
+.dark .bg-white\/70 {
+  background-color: rgb(41 37 36 / 0.7);
+}
+
+.dark .bg-white\/60 {
+  background-color: rgb(41 37 36 / 0.6);
+}
+
+.dark .text-stone-800 {
+  color: #e7e5e4;
+}
+
+.dark .text-stone-700 {
+  color: #d6d3d1;
+}
+
+.dark .text-stone-600 {
+  color: #a8a29e;
+}
+
+.dark .text-stone-500 {
+  color: #a8a29e;
+}
+
+.dark .text-stone-400 {
+  color: #78716c;
+}
+
+.dark .border-stone-100 {
+  border-color: #44403c;
+}
+
+.dark .border-stone-200 {
+  border-color: #44403c;
+}
+
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1c1917;
+  color: #e7e5e4;
+  border-color: #44403c;
+}
+
+.dark .shadow-md {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+}
+
+.dark .bg-stone-100 {
+  background-color: #44403c;
+}
+
+.dark .bg-stone-50 {
+  background-color: #292524;
 }

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import YoutubeEmbed from '../components/YoutubeEmbed'
 import { getYoutubeId, fetchUrlMetadata } from '../lib/helpers'
-import { CheckCircle, Edit2, Trash2, ExternalLink, Loader2 } from 'lucide-react'
+import { CheckCircle, Edit2, Trash2, ExternalLink, Loader2, Star, Share2 } from 'lucide-react'
 
 export default function TipDetail() {
   const { id } = useParams()
@@ -13,6 +13,7 @@ export default function TipDetail() {
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState(null)
   const [resolvedThumbnail, setResolvedThumbnail] = useState(null)
+  const [shareMsg, setShareMsg] = useState(null)
 
   useEffect(() => {
     let cancelled = false
@@ -29,7 +30,6 @@ export default function TipDetail() {
     return () => { cancelled = true }
   }, [id])
 
-  // Haal thumbnail op als die niet opgeslagen is
   useEffect(() => {
     if (!tip || tip.thumbnail_url) return
     if (!tip.url) return
@@ -76,6 +76,32 @@ export default function TipDetail() {
     if (!error && data) setTip(data)
   }
 
+  async function toggleFavorite() {
+    const { data, error } = await supabase
+      .from('tips')
+      .update({ favorited: !tip.favorited })
+      .eq('id', id)
+      .select()
+      .single()
+    if (!error && data) setTip(data)
+  }
+
+  async function handleShare() {
+    const text = `💡 ${tip.title}${tip.note ? '\n\n' + tip.note : ''}${tip.url ? '\n\n' + tip.url : ''}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: tip.title, text })
+      } catch {
+        // Gebruiker annuleerde
+      }
+    } else {
+      await navigator.clipboard.writeText(text)
+      setShareMsg('Gekopieerd!')
+      setTimeout(() => setShareMsg(null), 2000)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-16">
@@ -96,7 +122,6 @@ export default function TipDetail() {
 
   return (
     <div className="px-4 py-4 pb-8">
-      {/* Terug knop */}
       {/* YouTube embed */}
       {tip.type === 'youtube' && tip.url && (
         <div className="mb-4">
@@ -104,23 +129,24 @@ export default function TipDetail() {
         </div>
       )}
 
-      {/* Thumbnail voor andere types (opgeslagen of dynamisch opgehaald) */}
+      {/* Thumbnail voor andere types */}
       {tip.type !== 'youtube' && (tip.thumbnail_url || resolvedThumbnail) && (
         <div className="mb-4 rounded-xl overflow-hidden">
           <img src={tip.thumbnail_url || resolvedThumbnail} alt="" className="w-full h-auto" />
         </div>
       )}
 
-      {/* Titel & proven */}
+      {/* Titel + favoriet + proven */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <h1 className="font-serif font-bold text-xl text-stone-800 leading-snug">{tip.title}</h1>
-        <button onClick={toggleProven} className="flex-shrink-0 mt-1">
-          <CheckCircle
-            className={`w-6 h-6 transition-colors ${
-              tip.proven ? 'text-green-600 fill-green-100' : 'text-stone-300'
-            }`}
-          />
-        </button>
+        <div className="flex gap-1 flex-shrink-0 mt-1">
+          <button onClick={toggleFavorite} aria-label="Favoriet">
+            <Star className={`w-6 h-6 transition-colors ${tip.favorited ? 'text-amber-400 fill-amber-400' : 'text-stone-300'}`} />
+          </button>
+          <button onClick={toggleProven} aria-label="Bewezen">
+            <CheckCircle className={`w-6 h-6 transition-colors ${tip.proven ? 'text-green-600 fill-green-100' : 'text-stone-300'}`} />
+          </button>
+        </div>
       </div>
 
       {/* Bron */}
@@ -161,7 +187,7 @@ export default function TipDetail() {
         </a>
       )}
 
-      {/* Jaren & categorieën */}
+      {/* Jaren & categorieën & tags */}
       <div className="space-y-3 mb-6">
         {yearLabels.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -177,6 +203,15 @@ export default function TipDetail() {
             {tip.categories.map((cat) => (
               <span key={cat} className="text-xs bg-stone-50 text-stone-600 px-3 py-1 rounded-full border border-stone-200">
                 {cat}
+              </span>
+            ))}
+          </div>
+        )}
+        {tip.tags?.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {tip.tags.map((tag) => (
+              <span key={tag} className="text-xs bg-orange-50 text-orange-600 px-3 py-1 rounded-full border border-orange-200 font-bold">
+                #{tag}
               </span>
             ))}
           </div>
@@ -200,6 +235,13 @@ export default function TipDetail() {
 
       {/* Acties */}
       <div className="flex gap-3">
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 justify-center bg-blue-50 text-blue-600 px-4 py-3 rounded-xl text-sm font-medium hover:bg-blue-100 relative"
+        >
+          <Share2 className="w-4 h-4" />
+          {shareMsg || 'Delen'}
+        </button>
         <button
           onClick={() => navigate(`/tip/${id}/bewerken`)}
           className="flex items-center gap-2 flex-1 justify-center bg-stone-100 text-stone-700 px-4 py-3 rounded-xl text-sm font-medium hover:bg-stone-200"
