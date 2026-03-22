@@ -1,14 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { PlusCircle, CalendarDays, Settings, BarChart3, Moon, Sun, Search, X } from 'lucide-react'
-import { useDarkMode } from '../App'
-import { useSearch } from '../App'
+import { PlusCircle, CalendarDays, Settings, BarChart3, Search, X, Star } from 'lucide-react'
+import { useSearch, useFavorites } from '../App'
 
 export default function Layout({ children, onTitleClick }) {
   const navigate = useNavigate()
   const location = useLocation()
-  const { darkMode, setDarkMode } = useDarkMode()
   const { searchQuery, setSearchQuery } = useSearch()
+  const { showFavoritesOnly, setShowFavoritesOnly } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef(null)
   const onCalendar = location.pathname === '/kalender'
@@ -40,14 +39,18 @@ export default function Layout({ children, onTitleClick }) {
       setSearchOpen(false)
       setSearchQuery('')
     } else {
-      // Navigeer naar home als we niet daar zijn
       if (location.pathname !== '/') navigate('/')
       setSearchOpen(true)
     }
   }
 
+  function handleFavoritesToggle() {
+    if (location.pathname !== '/') navigate('/')
+    setShowFavoritesOnly(prev => !prev)
+  }
+
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-stone-900' : ''}`} style={!darkMode ? { background: 'linear-gradient(160deg, #fff1f8 0%, #fff7ed 40%, #f0fdf4 100%)' } : undefined}>
+    <div className="min-h-screen" style={{ background: 'linear-gradient(160deg, #fff1f8 0%, #fff7ed 40%, #f0fdf4 100%)' }}>
       {/* Header */}
       <header className="sticky top-0 z-10 shadow-lg" style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 40%, #f97316 100%)' }}>
         {/* Decoratieve stippen */}
@@ -67,13 +70,6 @@ export default function Layout({ children, onTitleClick }) {
           </button>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setDarkMode(!darkMode)}
-              aria-label={darkMode ? 'Lichte modus' : 'Donkere modus'}
-              className="p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all"
-            >
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-            <button
               onClick={handleSearchToggle}
               aria-label="Zoeken"
               className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
@@ -83,6 +79,18 @@ export default function Layout({ children, onTitleClick }) {
               }`}
             >
               {searchOpen ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={handleFavoritesToggle}
+              aria-label="Favorieten"
+              aria-pressed={showFavoritesOnly}
+              className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+                showFavoritesOnly
+                  ? 'bg-amber-400 text-white shadow-md'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-md'
+              }`}
+            >
+              <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-white' : ''}`} />
             </button>
             <button
               onClick={() => navigate('/statistieken')}

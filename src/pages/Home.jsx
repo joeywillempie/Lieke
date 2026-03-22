@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
-import { useSearch } from '../App'
+import { useSearch, useFavorites } from '../App'
 import YearNav from '../components/YearNav'
 import CategoryFilter from '../components/CategoryFilter'
 import TipCard from '../components/TipCard'
 import EmptyState from '../components/EmptyState'
 import AgeReminder from '../components/AgeReminder'
-import { Loader2, SlidersHorizontal, X, Star } from 'lucide-react'
+import { Loader2, SlidersHorizontal, X } from 'lucide-react'
 
 function TipsGrid({ tips, onToggleFavorite }) {
   if (tips.length === 0) return null
@@ -34,7 +34,7 @@ export default function Home() {
   const [selectedCategories, setSelectedCategories] = useState([])
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
   const { searchQuery, setSearchQuery } = useSearch()
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const { showFavoritesOnly } = useFavorites()
 
   useEffect(() => {
     fetchTips()
@@ -128,27 +128,14 @@ export default function Home() {
         totalCount={tips.length}
       />
 
-      {/* Favorieten toggle + filter */}
-      <div className="px-3 pt-2 flex gap-2 items-center">
-        <button
-          onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-          aria-label="Toon alleen favorieten"
-          aria-pressed={showFavoritesOnly}
-          className={`flex-shrink-0 p-2.5 rounded-full border shadow-sm transition-all ${
-            showFavoritesOnly
-              ? 'bg-amber-400 border-amber-400 text-white'
-              : 'bg-white border-stone-200 text-stone-400 hover:bg-amber-50'
-          }`}
-        >
-          <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-white' : ''}`} />
-        </button>
-
-        {/* Mobiele filter-knop */}
+      {/* Mobiele filter-knop */}
+      <div className="md:hidden px-3 pt-2">
         <button
           onClick={() => setMobileFilterOpen(true)}
-          className="md:hidden flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-full bg-white shadow-sm border border-stone-200 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-stone-200 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
         >
           <SlidersHorizontal className="w-4 h-4" />
+          Categorieën
           {selectedCategories.length > 0 && (
             <span className="bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
               {selectedCategories.length}

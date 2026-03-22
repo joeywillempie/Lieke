@@ -1,4 +1,4 @@
-import { Component, useState, useEffect, createContext, useContext } from 'react'
+import { Component, useState, createContext, useContext } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
@@ -9,16 +9,16 @@ import Settings from './pages/Settings'
 import Stats from './pages/Stats'
 import BirthdayNotification from './components/BirthdayNotification'
 
-// Dark mode context
-export const DarkModeContext = createContext()
-export function useDarkMode() {
-  return useContext(DarkModeContext)
-}
-
 // Search context
 export const SearchContext = createContext()
 export function useSearch() {
   return useContext(SearchContext)
+}
+
+// Favorites filter context
+export const FavoritesContext = createContext()
+export function useFavorites() {
+  return useContext(FavoritesContext)
 }
 
 class ErrorBoundary extends Component {
@@ -62,20 +62,7 @@ function markBirthdayShown() {
 export default function App() {
   const [birthdayVisible, setBirthdayVisible] = useState(() => shouldShowBirthday())
   const [searchQuery, setSearchQuery] = useState('')
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode')
-    if (saved !== null) return saved === 'true'
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-  })
-
-  useEffect(() => {
-    localStorage.setItem('darkMode', darkMode)
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [darkMode])
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
   function dismiss() {
     markBirthdayShown()
@@ -83,8 +70,8 @@ export default function App() {
   }
 
   return (
-    <DarkModeContext.Provider value={{ darkMode, setDarkMode }}>
     <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>
+    <FavoritesContext.Provider value={{ showFavoritesOnly, setShowFavoritesOnly }}>
       <BrowserRouter>
         <ErrorBoundary>
           <BirthdayNotification visible={birthdayVisible} onDismiss={dismiss} />
@@ -101,7 +88,7 @@ export default function App() {
           </Layout>
         </ErrorBoundary>
       </BrowserRouter>
+    </FavoritesContext.Provider>
     </SearchContext.Provider>
-    </DarkModeContext.Provider>
   )
 }
