@@ -115,7 +115,7 @@ export default function Layout({ children, onTitleClick }) {
               className={`p-1.5 rounded-full transition-all ${
                 onSettings
                   ? 'bg-white text-purple-600 shadow-sm'
-                  : 'bg-white/20 text-white hover:bg-white/30'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
               }`}
             >
               <Settings className="w-3.5 h-3.5" />
