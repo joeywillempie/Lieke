@@ -68,69 +68,69 @@ export default function Layout({ children, onTitleClick }) {
               Lieke
             </span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={handleSearchToggle}
               aria-label="Zoeken"
-              className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+              className={`p-1.5 rounded-full transition-all ${
                 searchOpen
-                  ? 'bg-white text-purple-600 shadow-md'
-                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-md'
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
               }`}
             >
-              {searchOpen ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+              {searchOpen ? <X className="w-3.5 h-3.5" /> : <Search className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={handleFavoritesToggle}
               aria-label="Favorieten"
               aria-pressed={showFavoritesOnly}
-              className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+              className={`p-1.5 rounded-full transition-all ${
                 showFavoritesOnly
-                  ? 'bg-amber-400 text-white shadow-md'
-                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-md'
+                  ? 'bg-amber-400 text-white shadow-sm'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
               }`}
             >
-              <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-white' : ''}`} />
+              <Star className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-white' : ''}`} />
             </button>
             <button
               onClick={() => navigate('/statistieken')}
               aria-label="Statistieken"
-              className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+              className={`p-1.5 rounded-full transition-all ${
                 onStats
-                  ? 'bg-white text-purple-600 shadow-md'
-                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-md'
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
               }`}
             >
-              <BarChart3 className="w-4 h-4" />
+              <BarChart3 className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => navigate('/kalender')}
               aria-label="Kalender"
-              className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${
+              className={`p-1.5 rounded-full transition-all ${
                 onCalendar
-                  ? 'bg-white text-purple-600 shadow-md'
-                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-md'
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
               }`}
             >
-              <CalendarDays className="w-4 h-4" />
+              <CalendarDays className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => navigate('/tip/nieuw')}
               aria-label="Advies toevoegen"
-              className="flex items-center gap-1.5 bg-white text-pink-600 px-3 md:px-4 py-2 rounded-full text-sm font-bold hover:bg-pink-50 transition-colors shadow-md"
+              className="p-1.5 rounded-full bg-white text-pink-600 hover:bg-pink-50 transition-colors shadow-sm"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => navigate('/instellingen')}
               aria-label="Instellingen"
-              className={`p-2 rounded-full transition-all ${
+              className={`p-1.5 rounded-full transition-all ${
                 onSettings
-                  ? 'bg-white text-purple-600 shadow-md'
+                  ? 'bg-white text-purple-600 shadow-sm'
                   : 'bg-white/20 text-white hover:bg-white/30'
               }`}
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
