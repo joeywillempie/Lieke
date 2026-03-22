@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
+import { useSearch } from '../App'
 import YearNav from '../components/YearNav'
 import CategoryFilter from '../components/CategoryFilter'
 import TipCard from '../components/TipCard'
 import EmptyState from '../components/EmptyState'
 import AgeReminder from '../components/AgeReminder'
-import { Loader2, SlidersHorizontal, X, Search, Star } from 'lucide-react'
+import { Loader2, SlidersHorizontal, X, Star } from 'lucide-react'
 
 function TipsGrid({ tips, onToggleFavorite }) {
   if (tips.length === 0) return null
@@ -32,7 +33,7 @@ export default function Home() {
   const [activeYear, setActiveYear] = useState('all')
   const [selectedCategories, setSelectedCategories] = useState([])
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const { searchQuery, setSearchQuery } = useSearch()
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
   useEffect(() => {
@@ -127,26 +128,8 @@ export default function Home() {
         totalCount={tips.length}
       />
 
-      {/* Zoekbalk + favorieten toggle + filter */}
+      {/* Favorieten toggle + filter */}
       <div className="px-3 pt-2 flex gap-2 items-center">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Zoek in tips..."
-            className="w-full pl-9 pr-8 py-2 rounded-full bg-white border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 shadow-sm"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2"
-            >
-              <X className="w-3.5 h-3.5 text-stone-400" />
-            </button>
-          )}
-        </div>
         <button
           onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
           aria-label="Toon alleen favorieten"

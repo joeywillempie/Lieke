@@ -15,6 +15,12 @@ export function useDarkMode() {
   return useContext(DarkModeContext)
 }
 
+// Search context
+export const SearchContext = createContext()
+export function useSearch() {
+  return useContext(SearchContext)
+}
+
 class ErrorBoundary extends Component {
   state = { hasError: false }
 
@@ -55,6 +61,7 @@ function markBirthdayShown() {
 
 export default function App() {
   const [birthdayVisible, setBirthdayVisible] = useState(() => shouldShowBirthday())
+  const [searchQuery, setSearchQuery] = useState('')
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode')
     if (saved !== null) return saved === 'true'
@@ -77,6 +84,7 @@ export default function App() {
 
   return (
     <DarkModeContext.Provider value={{ darkMode, setDarkMode }}>
+    <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>
       <BrowserRouter>
         <ErrorBoundary>
           <BirthdayNotification visible={birthdayVisible} onDismiss={dismiss} />
@@ -93,6 +101,7 @@ export default function App() {
           </Layout>
         </ErrorBoundary>
       </BrowserRouter>
+    </SearchContext.Provider>
     </DarkModeContext.Provider>
   )
 }
