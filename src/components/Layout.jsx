@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { PlusCircle, CalendarDays, Settings, BarChart3, Search, X, Star } from 'lucide-react'
+import { PlusCircle, CalendarDays, Settings, Search, X, Star } from 'lucide-react'
 import { useSearch, useFavorites } from '../App'
 
 export default function Layout({ children, onTitleClick }) {
@@ -12,7 +12,6 @@ export default function Layout({ children, onTitleClick }) {
   const searchInputRef = useRef(null)
   const onCalendar = location.pathname === '/kalender'
   const onSettings = location.pathname === '/instellingen'
-  const onStats = location.pathname === '/statistieken'
 
   // Focus het invoerveld als zoek opent
   useEffect(() => {
@@ -70,15 +69,22 @@ export default function Layout({ children, onTitleClick }) {
           </button>
           <div className="flex items-center gap-1">
             <button
-              onClick={handleSearchToggle}
-              aria-label="Zoeken"
+              onClick={() => navigate('/tip/nieuw')}
+              aria-label="Advies toevoegen"
+              className="p-1.5 rounded-full bg-white text-pink-600 hover:bg-pink-50 transition-colors shadow-sm"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => navigate('/kalender')}
+              aria-label="Kalender"
               className={`p-1.5 rounded-full transition-all ${
-                searchOpen
+                onCalendar
                   ? 'bg-white text-purple-600 shadow-sm'
                   : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
               }`}
             >
-              {searchOpen ? <X className="w-3.5 h-3.5" /> : <Search className="w-3.5 h-3.5" />}
+              <CalendarDays className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleFavoritesToggle}
@@ -93,33 +99,15 @@ export default function Layout({ children, onTitleClick }) {
               <Star className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-white' : ''}`} />
             </button>
             <button
-              onClick={() => navigate('/statistieken')}
-              aria-label="Statistieken"
+              onClick={handleSearchToggle}
+              aria-label="Zoeken"
               className={`p-1.5 rounded-full transition-all ${
-                onStats
+                searchOpen
                   ? 'bg-white text-purple-600 shadow-sm'
                   : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => navigate('/kalender')}
-              aria-label="Kalender"
-              className={`p-1.5 rounded-full transition-all ${
-                onCalendar
-                  ? 'bg-white text-purple-600 shadow-sm'
-                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
-              }`}
-            >
-              <CalendarDays className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => navigate('/tip/nieuw')}
-              aria-label="Advies toevoegen"
-              className="p-1.5 rounded-full bg-white text-pink-600 hover:bg-pink-50 transition-colors shadow-sm"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
+              {searchOpen ? <X className="w-3.5 h-3.5" /> : <Search className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={() => navigate('/instellingen')}
