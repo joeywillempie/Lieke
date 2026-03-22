@@ -6,7 +6,7 @@ import CategoryFilter from '../components/CategoryFilter'
 import TipCard from '../components/TipCard'
 import EmptyState from '../components/EmptyState'
 import AgeReminder from '../components/AgeReminder'
-import { Loader2, SlidersHorizontal, X } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 
 function TipsGrid({ tips, onToggleFavorite }) {
   if (tips.length === 0) return null
@@ -126,23 +126,9 @@ export default function Home() {
         onYearChange={setActiveYear}
         tipCounts={tipCounts}
         totalCount={tips.length}
+        onFilterClick={() => setMobileFilterOpen(true)}
+        filterCount={selectedCategories.length}
       />
-
-      {/* Mobiele filter-knop */}
-      <div className="md:hidden px-3 pt-2">
-        <button
-          onClick={() => setMobileFilterOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm border border-stone-200 text-sm font-bold text-stone-600 hover:bg-stone-50 transition-colors"
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-          Categorieën
-          {selectedCategories.length > 0 && (
-            <span className="bg-pink-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-              {selectedCategories.length}
-            </span>
-          )}
-        </button>
-      </div>
 
       {/* Leeftijdsherinnering */}
       <AgeReminder />

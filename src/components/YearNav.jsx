@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { YEARS } from '../constants/years'
+import { SlidersHorizontal } from 'lucide-react'
 
 // Regenboog per positie
 const PALETTE = [
@@ -25,7 +26,7 @@ const PALETTE = [
   { active: 'bg-red-600 text-white shadow-red-200', inactive: 'bg-red-100 text-red-700 hover:bg-red-200' },
 ]
 
-export default function YearNav({ activeYear, onYearChange }) {
+export default function YearNav({ activeYear, onYearChange, onFilterClick, filterCount }) {
   const years = ['all', ...YEARS]
   const [poppingYear, setPoppingYear] = useState(null)
   const scrollRef = useRef(null)
@@ -46,31 +47,50 @@ export default function YearNav({ activeYear, onYearChange }) {
   }
 
   return (
-    <div
-      ref={scrollRef}
-      className="flex gap-1.5 px-2 py-2 bg-white border-b border-stone-100 overflow-x-auto scrollbar-hide"
-    >
-      {years.map((year, i) => {
-        const isActive = activeYear === year
-        const label = year === 'all' ? 'Alles' : year === 'always' ? 'Altijd' : `${year}`
-        const isPopping = poppingYear === year
-        const colors = PALETTE[i % PALETTE.length]
+    <div className="flex bg-white border-b border-stone-100">
+      {/* Hamburger filter-knop — vast links, alleen op mobiel */}
+      {onFilterClick && (
+        <button
+          onClick={onFilterClick}
+          aria-label="Categorieën filter"
+          className="md:hidden flex-shrink-0 flex items-center justify-center w-10 border-r border-stone-100 text-stone-500 hover:bg-stone-50 transition-colors relative"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          {filterCount > 0 && (
+            <span className="absolute top-1 right-0.5 bg-pink-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+              {filterCount}
+            </span>
+          )}
+        </button>
+      )}
 
-        return (
-          <button
-            key={year}
-            ref={el => btnRefs.current[year] = el}
-            onClick={() => handleClick(year)}
-            aria-label={year === 'all' ? 'Toon alle tips' : `Toon tips voor jaar ${year}`}
-            aria-pressed={isActive}
-            className={`year-btn flex-shrink-0 md:flex-shrink md:flex-1 min-w-[3rem] px-3 flex items-center justify-center py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
-              isActive ? `${colors.active} shadow-md scale-105` : `${colors.inactive}`
-            } ${isPopping ? 'year-pop' : ''}`}
-          >
-            <span className="leading-none">{label}</span>
-          </button>
-        )
-      })}
+      {/* Scrollbare jaren */}
+      <div
+        ref={scrollRef}
+        className="flex-1 flex gap-1.5 px-2 py-2 overflow-x-auto scrollbar-hide"
+      >
+        {years.map((year, i) => {
+          const isActive = activeYear === year
+          const label = year === 'all' ? 'Alles' : year === 'always' ? 'Altijd' : `${year}`
+          const isPopping = poppingYear === year
+          const colors = PALETTE[i % PALETTE.length]
+
+          return (
+            <button
+              key={year}
+              ref={el => btnRefs.current[year] = el}
+              onClick={() => handleClick(year)}
+              aria-label={year === 'all' ? 'Toon alle tips' : `Toon tips voor jaar ${year}`}
+              aria-pressed={isActive}
+              className={`year-btn flex-shrink-0 md:flex-shrink md:flex-1 min-w-[3rem] px-3 flex items-center justify-center py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                isActive ? `${colors.active} shadow-md scale-105` : `${colors.inactive}`
+              } ${isPopping ? 'year-pop' : ''}`}
+            >
+              <span className="leading-none">{label}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
