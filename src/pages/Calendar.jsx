@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Plus, X, Clock, MapPin, FileText, Pencil } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, X, Clock, MapPin, FileText, Pencil, CalendarDays, Baby } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import TimePicker from '../components/TimePicker'
 import { BIRTH_DATE } from '../constants/config'
+import BabyCalendar from '../components/BabyCalendar'
 
 const DAYS = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo']
 const MONTHS = [
@@ -30,6 +31,7 @@ function toDateStr(year, month, day) {
 const EMPTY_FORM = { what: '', time: '', location: '' }
 
 export default function Calendar() {
+  const [activeTab, setActiveTab] = useState('baby') // 'baby' | 'agenda'
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
@@ -154,7 +156,39 @@ export default function Calendar() {
   const selectedEvents = selectedDay ? eventsOnDay(selectedDay) : []
 
   return (
-    <div className="p-4 max-w-lg mx-auto">
+    <div className="max-w-lg mx-auto">
+      {/* Tab navigatie */}
+      <div className="flex border-b border-stone-100 sticky top-0 bg-[#FFF9F5] z-10">
+        <button
+          onClick={() => setActiveTab('baby')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold transition-colors ${
+            activeTab === 'baby'
+              ? 'text-orange-500 border-b-2 border-orange-400'
+              : 'text-stone-400 hover:text-stone-600'
+          }`}
+        >
+          <Baby className="w-4 h-4" />
+          Babykalender
+        </button>
+        <button
+          onClick={() => setActiveTab('agenda')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold transition-colors ${
+            activeTab === 'agenda'
+              ? 'text-orange-500 border-b-2 border-orange-400'
+              : 'text-stone-400 hover:text-stone-600'
+          }`}
+        >
+          <CalendarDays className="w-4 h-4" />
+          Agenda
+        </button>
+      </div>
+
+      {/* Babykalender tab */}
+      {activeTab === 'baby' && <BabyCalendar />}
+
+      {/* Agenda tab */}
+      {activeTab === 'agenda' && (
+    <div className="p-4">
       {/* Maand navigatie */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={prevMonth} aria-label="Vorige maand" className="p-2 rounded-xl hover:bg-orange-100 transition-colors">
@@ -336,6 +370,8 @@ export default function Calendar() {
             </ul>
           )}
         </div>
+      )}
+    </div>
       )}
     </div>
   )
