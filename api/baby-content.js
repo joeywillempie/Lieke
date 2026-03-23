@@ -1,9 +1,16 @@
-// Vercel serverless function — haalt 24baby.nl artikelinhoud op
-export default async function handler(req, res) {
-  const { slug } = req.query
+export const config = {
+  runtime: 'edge',
+}
+
+export default async function handler(req) {
+  const { searchParams } = new URL(req.url)
+  const slug = searchParams.get('slug')
 
   if (!slug || !/^baby-[\w-]+$/.test(slug)) {
-    return res.status(400).json({ error: 'Ongeldige slug' })
+    return new Response(JSON.stringify({ error: 'Ongeldige slug' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   const url = `https://www.24baby.nl/baby-kalender/${slug}/`
@@ -17,7 +24,10 @@ export default async function handler(req, res) {
     })
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: 'Pagina niet gevonden' })
+      return new Response(JSON.stringify({ error: 'Pagina niet gevonden' }), {
+        status: response.status,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
 
     const html = await response.text()
@@ -25,7 +35,10 @@ export default async function handler(req, res) {
     // Extract article content between <article> tags
     const articleMatch = html.match(/<article[^>]*>([\s\S]*?)<\/article>/)
     if (!articleMatch) {
-      return res.status(404).json({ error: 'Geen artikel gevonden' })
+      return new Response(JSON.stringify({ error: 'Geen artikel gevonden' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
 
     let content = articleMatch[1]
@@ -51,12 +64,17 @@ export default async function handler(req, res) {
     const titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)
     const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : ''
 
-    // Extract subtitle (usually in hero area)
-    const subtitleMatch = html.match(/<h1[\s\S]*?<\/h1>\s*(?:<[^>]*>)*([\s\S]*?)(?=<(?:div|section|article))/i)
-
-    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800')
-    return res.status(200).json({ title, content })
+    return new Response(JSON.stringify({ title, content }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 's-maxage=86400, stale-while-revalidate=604800',
+      },
+    })
   } catch (err) {
-    return res.status(500).json({ error: 'Ophalen mislukt: ' + err.message })
+    return new Response(JSON.stringify({ error: 'Ophalen mislukt: ' + err.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 }
