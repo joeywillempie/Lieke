@@ -38,6 +38,11 @@ function babyContentPlugin() {
           content = content.replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
           content = content.replace(/dataLayer\.push\([^)]*\);?/g, '')
           content = content.replace(/\s*on\w+="[^"]*"/gi, '')
+          // Fix lazy-loaded images: replace src placeholder with data-src
+          content = content.replace(/<img([^>]*?)data-src="([^"]+)"([^>]*?)>/gi, (match, before, dataSrc, after) => {
+            const cleaned = (before + after).replace(/src="data:image[^"]*"/gi, '')
+            return `<img${cleaned} src="${dataSrc}">`
+          })
 
           const titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)
           const title = titleMatch ? titleMatch[1].replace(/<[^>]*>/g, '').trim() : ''

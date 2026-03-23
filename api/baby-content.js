@@ -59,6 +59,12 @@ export default async function handler(req) {
     content = content.replace(/\s*on\w+="[^"]*"/gi, '')
     // Remove empty links
     content = content.replace(/<a[^>]*>\s*<\/a>/g, '')
+    // Fix lazy-loaded images: replace src placeholder with data-src
+    content = content.replace(/<img([^>]*?)data-src="([^"]+)"([^>]*?)>/gi, (match, before, dataSrc, after) => {
+      // Remove existing src with placeholder
+      const cleaned = (before + after).replace(/src="data:image[^"]*"/gi, '')
+      return `<img${cleaned} src="${dataSrc}">`
+    })
 
     // Extract title from h1
     const titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)
