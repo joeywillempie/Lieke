@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { PlusCircle, CalendarDays, Settings, Search, X, Star } from 'lucide-react'
+import { PlusCircle, CalendarDays, Settings, Search, X, Star, Baby } from 'lucide-react'
 import { useSearch, useFavorites } from '../App'
 
 export default function Layout({ children, onTitleClick }) {
@@ -11,6 +11,7 @@ export default function Layout({ children, onTitleClick }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const searchInputRef = useRef(null)
   const onCalendar = location.pathname === '/kalender'
+  const onBabyCalendar = location.pathname.startsWith('/babykalender')
   const onSettings = location.pathname === '/instellingen'
 
   // Focus het invoerveld als zoek opent
@@ -74,6 +75,17 @@ export default function Layout({ children, onTitleClick }) {
               className="p-1.5 rounded-full bg-white text-pink-600 hover:bg-pink-50 transition-colors shadow-sm"
             >
               <PlusCircle className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => navigate('/babykalender')}
+              aria-label="Babykalender"
+              className={`p-1.5 rounded-full transition-all ${
+                onBabyCalendar
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'bg-white text-pink-600 hover:bg-pink-50 shadow-sm'
+              }`}
+            >
+              <Baby className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => navigate('/kalender')}

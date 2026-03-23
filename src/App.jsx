@@ -5,6 +5,8 @@ import Home from './pages/Home'
 import TipDetail from './pages/TipDetail'
 import AddTip from './pages/AddTip'
 import Calendar from './pages/Calendar'
+import BabyCalendarPage from './pages/BabyCalendarPage'
+import BabyWeekDetail from './pages/BabyWeekDetail'
 import Settings from './pages/Settings'
 import Stats from './pages/Stats'
 import BirthdayNotification from './components/BirthdayNotification'
@@ -82,6 +84,8 @@ export default function App() {
               <Route path="/tip/:id" element={<TipDetail />} />
               <Route path="/tip/:id/bewerken" element={<AddTip />} />
               <Route path="/kalender" element={<Calendar />} />
+              <Route path="/babykalender" element={<BabyCalendarPage />} />
+              <Route path="/babykalender/:type/:num" element={<BabyWeekDetail />} />
               <Route path="/instellingen" element={<Settings />} />
               <Route path="/statistieken" element={<Stats />} />
             </Routes>

@@ -95,3 +95,105 @@ button, a, [role="button"] {
 .animate-slide-down {
   animation: slide-down 0.2s ease-out both;
 }
+
+/* 24baby.nl artikel styling */
+.baby-article {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #44403c;
+}
+
+.baby-article h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.baby-article h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1c1917;
+  margin: 1.75rem 0 0.5rem;
+  padding-bottom: 0.375rem;
+  border-bottom: 2px solid #fed7aa;
+}
+
+.baby-article h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #292524;
+  margin: 1.25rem 0 0.375rem;
+}
+
+.baby-article p {
+  margin: 0.625rem 0;
+}
+
+.baby-article a {
+  color: #ea580c;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.baby-article a:hover {
+  color: #c2410c;
+}
+
+.baby-article ul, .baby-article ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.baby-article li {
+  margin: 0.25rem 0;
+}
+
+.baby-article ul li {
+  list-style-type: disc;
+}
+
+.baby-article ol li {
+  list-style-type: decimal;
+}
+
+.baby-article img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 1rem;
+  margin: 1rem 0;
+}
+
+.baby-article blockquote {
+  border-left: 3px solid #fb923c;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #78716c;
+  font-style: italic;
+}
+
+.baby-article figure {
+  margin: 1rem 0;
+}
+
+.baby-article figcaption {
+  font-size: 0.75rem;
+  color: #a8a29e;
+  text-align: center;
+  margin-top: 0.25rem;
+}
+
+/* Verberg ongewenste elementen uit 24baby */
+.baby-article [class*="ad-"],
+.baby-article [class*="sponsor"],
+.baby-article [class*="banner"],
+.baby-article [class*="cookie"],
+.baby-article [class*="social-share"],
+.baby-article [class*="newsletter"],
+.baby-article [class*="poll"],
+.baby-article form {
+  display: none !important;
+}
