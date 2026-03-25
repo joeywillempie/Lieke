@@ -14,10 +14,19 @@ function cleanArticleHtml(html, articleHtml) {
   // Remove sponsored/ad blocks
   content = content.replace(/<div[^>]*class="[^"]*(?:mini-ad|advertisement|sponsored)[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gi, '')
   content = content.replace(/<span[^>]*class="[^"]*sponsored-by[^"]*"[^>]*>[\s\S]*?<\/span>/gi, '')
-  // Remove individual sponsor images (Kruidvat logo etc)
+  // Remove individual sponsor images and picture elements (Kruidvat logo etc)
   content = content.replace(/<img[^>]*(?:Kruidvat|sponsor)[^>]*>/gi, '')
+  content = content.replace(/<picture[^>]*>(?:[^<]|<(?!\/picture))*Kruidvat(?:[^<]|<(?!\/picture))*<\/picture>/gi, '')
   // Remove links to sponsor sites (kruidvat etc) with all their content
   content = content.replace(/<a[^>]*href="[^"]*kruidvat[^"]*"[^>]*>[\s\S]*?<\/a>/gi, '')
+  // Remove week navigation (volgende/vorige) — we have our own
+  content = content.replace(/<div[^>]*class="[^"]*volgende-nummer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+  content = content.replace(/<div[^>]*class="[^"]*vorige-nummer[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+  content = content.replace(/<div[^>]*class="[^"]*section-volgende[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<\/div>/gi, '')
+  // Remove commercial/ad info blocks and mini-ad sections
+  content = content.replace(/<div[^>]*class="[^"]*commercial_information[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
+  content = content.replace(/<div[^>]*class="[^"]*sectie-fcMiniAd[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/section>\s*<\/div>/gi, '')
+  content = content.replace(/<div[^>]*data-campaign="[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<\/div>/gi, '')
   content = content.replace(/In samenwerking met[\s\S]*?(?=<(?:h[23]|hr|div class="row"))/gi, '')
   content = content.replace(/<div[^>]*class="[^"]*(?:ad-|sponsor|banner|cookie|newsletter|mini-ad)[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
 
