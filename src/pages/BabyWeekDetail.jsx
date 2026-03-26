@@ -91,15 +91,6 @@ export default function BabyWeekDetail() {
               </div>
             )}
           </div>
-          <a
-            href={externalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 p-2 text-stone-400 hover:text-orange-500 transition-colors"
-            title="Open op 24baby.nl"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </a>
         </div>
       </div>
 
