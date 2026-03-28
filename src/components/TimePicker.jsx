@@ -46,25 +46,38 @@ export default function TimePicker({ value, onChange }) {
   function onWheelH(e) { e.preventDefault(); modH(e.deltaY > 0 ? -1 : 1) }
   function onWheelM(e) { e.preventDefault(); modM(e.deltaY > 0 ? -1 : 1) }
 
-  // Ingedrukt houden: eerste klik direct, daarna herhalen na 400ms elke 80ms
+  // Track of een touch actief is (voorkomt dat mouseDown ook nog vuurt)
+  const isTouching = useRef(false)
+
+  // Ingedrukt houden: eerste klik direct, daarna herhalen na 500ms elke 150ms
   function startHold(fn) {
     fn()
     holdTimer.current = setTimeout(() => {
-      holdInterval.current = setInterval(fn, 80)
-    }, 400)
+      holdInterval.current = setInterval(fn, 150)
+    }, 500)
   }
 
   function stopHold() {
     clearTimeout(holdTimer.current)
     clearInterval(holdInterval.current)
+    // Reset touch flag na korte delay
+    setTimeout(() => { isTouching.current = false }, 50)
   }
 
-  // Helper om hold-props te genereren
+  // Helper om hold-props te genereren — voorkomt dubbel vuren op mobiel
   const hold = useCallback((fn) => ({
-    onMouseDown: (e) => { e.preventDefault(); startHold(fn) },
+    onMouseDown: (e) => {
+      e.preventDefault()
+      if (isTouching.current) return // skip als touch al actief is
+      startHold(fn)
+    },
     onMouseUp: stopHold,
     onMouseLeave: stopHold,
-    onTouchStart: (e) => { e.preventDefault(); startHold(fn) },
+    onTouchStart: (e) => {
+      e.preventDefault()
+      isTouching.current = true
+      startHold(fn)
+    },
     onTouchEnd: stopHold,
   }), [])
 
