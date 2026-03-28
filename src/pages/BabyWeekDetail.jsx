@@ -24,12 +24,12 @@ function getPrevNext(type, weekNum) {
   const prevLabel = prev
     ? (prev.type === 'week'
       ? (prev.num === 1 ? '1 week' : `${prev.num} weken`)
-      : `${prev.num} mnd`)
+      : `${prev.num} maanden`)
     : null
   const nextLabel = next
     ? (next.type === 'week'
       ? (next.num === 1 ? '1 week' : `${next.num} weken`)
-      : `${next.num} mnd`)
+      : `${next.num} maanden`)
     : null
 
   const prevLink = prev ? `/babykalender/${prev.type === 'week' ? 'week' : 'maand'}/${prev.num}` : null
@@ -59,11 +59,8 @@ export default function BabyWeekDetail() {
 
   const { prevLink, nextLink, prevLabel, nextLabel } = getPrevNext(type, weekNum)
 
-  // All items for the horizontal nav
-  const allItems = [
-    ...BABY_WEEKS.map(w => ({ type: 'week', num: w.week, label: String(w.week) })),
-    ...BABY_MONTHS.map(m => ({ type: 'maand', num: m.month, label: `${m.month}m` })),
-  ]
+  // Only show weeks in the nav (like 24baby)
+  const weekItems = BABY_WEEKS.map(w => ({ num: w.week, label: String(w.week) }))
 
   useEffect(() => {
     let cancelled = false
@@ -102,34 +99,45 @@ export default function BabyWeekDetail() {
     }
   }, [type, weekNum])
 
-  const isActive = (itemType, itemNum) =>
-    (isWeek && itemType === 'week' && itemNum === weekNum) ||
-    (!isWeek && itemType === 'maand' && itemNum === weekNum)
+  const scrollNav = (dir) => {
+    if (navRef.current) {
+      navRef.current.scrollBy({ left: dir * 200, behavior: 'smooth' })
+    }
+  }
 
   return (
     <div className="pb-8">
-      {/* Week navigation bar */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-stone-100">
-        {/* Nav label + scrollable circles */}
-        <div className="flex items-center gap-2 px-2 py-2">
-          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wide flex-shrink-0 pl-1">
-            {isWeek ? 'Weken' : 'Mnd'}
-          </span>
+      {/* Header area — 24baby style */}
+      <div className="sticky top-0 z-10 bg-[#FDF6F0]">
+        {/* Week number navigation */}
+        <div className="flex items-center gap-1 px-2 py-3">
+          <div className="flex flex-col items-center flex-shrink-0 mr-1">
+            <span className="text-[11px] font-bold text-[#3D2C6B] leading-tight">Weken</span>
+            <span className="text-[11px] font-bold text-[#3D2C6B] leading-tight">baby</span>
+          </div>
+
+          <button
+            onClick={() => scrollNav(-1)}
+            className="flex-shrink-0 text-[#8B7BB5] hover:text-[#5B4A9E] transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+
           <div
             ref={navRef}
-            className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide flex-1"
+            className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1 px-1"
           >
-            {allItems.map(item => {
-              const active = isActive(item.type, item.num)
+            {weekItems.map(item => {
+              const active = isWeek && item.num === weekNum
               return (
                 <button
-                  key={`${item.type}-${item.num}`}
+                  key={item.num}
                   ref={active ? activeRef : undefined}
-                  onClick={() => navigate(`/babykalender/${item.type === 'week' ? 'week' : 'maand'}/${item.num}`)}
-                  className={`flex-shrink-0 w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                  onClick={() => navigate(`/babykalender/week/${item.num}`)}
+                  className={`flex-shrink-0 w-10 h-10 rounded-full text-sm font-bold transition-all ${
                     active
-                      ? 'bg-orange-500 text-white shadow-md'
-                      : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                      ? 'bg-[#6B5CA5] text-white shadow-lg shadow-purple-200'
+                      : 'bg-white text-[#3D2C6B] hover:bg-purple-50 border border-gray-200'
                   }`}
                 >
                   {item.label}
@@ -137,27 +145,34 @@ export default function BabyWeekDetail() {
               )
             })}
           </div>
+
+          <button
+            onClick={() => scrollNav(1)}
+            className="flex-shrink-0 text-[#8B7BB5] hover:text-[#5B4A9E] transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* Title + prev/next */}
-        <div className="flex items-center px-3 pb-3 pt-1">
+        {/* Title + prev/next — big and centered */}
+        <div className="flex items-center px-4 pb-5 pt-2">
           {prevLink ? (
             <button
               onClick={() => navigate(prevLink)}
-              className="flex flex-col items-center gap-0 text-orange-500 hover:text-orange-600 transition-colors min-w-[70px]"
+              className="flex flex-col items-center gap-1 text-[#6B5CA5] hover:text-[#5B4A9E] transition-colors min-w-[80px]"
             >
-              <ChevronLeft className="w-5 h-5" />
-              <span className="text-[10px] font-semibold">{prevLabel}</span>
+              <ChevronLeft className="w-8 h-8 stroke-[2.5]" />
+              <span className="text-xs font-semibold">{prevLabel}</span>
             </button>
-          ) : <div className="min-w-[70px]" />}
+          ) : <div className="min-w-[80px]" />}
 
-          <div className="flex-1 text-center">
-            <h1 className="font-serif font-bold text-stone-800 text-xl leading-tight">
+          <div className="flex-1 text-center px-2">
+            <h1 className="font-serif font-bold text-[#2A1B5B] text-2xl sm:text-3xl leading-tight">
               {title || (isWeek ? `Baby ${weekNum} weken oud` : `Baby ${weekNum} maanden oud`)}
             </h1>
             {currentItem?.topics?.length > 0 && (
-              <p className="text-xs text-stone-400 mt-1">
-                {currentItem.topics.join(' · ')}
+              <p className="text-sm text-[#8B7BB5] mt-2 leading-relaxed">
+                {currentItem.topics.join(' en ')}
               </p>
             )}
           </div>
@@ -165,19 +180,22 @@ export default function BabyWeekDetail() {
           {nextLink ? (
             <button
               onClick={() => navigate(nextLink)}
-              className="flex flex-col items-center gap-0 text-orange-500 hover:text-orange-600 transition-colors min-w-[70px]"
+              className="flex flex-col items-center gap-1 text-[#6B5CA5] hover:text-[#5B4A9E] transition-colors min-w-[80px]"
             >
-              <ChevronRight className="w-5 h-5" />
-              <span className="text-[10px] font-semibold">{nextLabel}</span>
+              <ChevronRight className="w-8 h-8 stroke-[2.5]" />
+              <span className="text-xs font-semibold">{nextLabel}</span>
             </button>
-          ) : <div className="min-w-[70px]" />}
+          ) : <div className="min-w-[80px]" />}
         </div>
+
+        {/* Subtle bottom border */}
+        <div className="h-px bg-gradient-to-r from-transparent via-purple-200 to-transparent" />
       </div>
 
       {/* Content */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-orange-400 mb-3" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#6B5CA5] mb-3" />
           <p className="text-sm text-stone-400">Artikel laden...</p>
         </div>
       )}
@@ -189,7 +207,7 @@ export default function BabyWeekDetail() {
             href={externalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-orange-500 font-bold hover:text-orange-600"
+            className="inline-flex items-center gap-2 text-sm text-[#6B5CA5] font-bold hover:text-[#5B4A9E]"
           >
             <ExternalLink className="w-4 h-4" />
             Bekijk op 24baby.nl
@@ -210,7 +228,7 @@ export default function BabyWeekDetail() {
           {prevLink ? (
             <button
               onClick={() => navigate(prevLink)}
-              className="flex items-center gap-1 text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors"
+              className="flex items-center gap-1 text-sm font-bold text-[#6B5CA5] hover:text-[#5B4A9E] transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
               {prevLabel}
@@ -219,7 +237,7 @@ export default function BabyWeekDetail() {
           {nextLink ? (
             <button
               onClick={() => navigate(nextLink)}
-              className="flex items-center gap-1 text-sm font-bold text-orange-500 hover:text-orange-600 transition-colors"
+              className="flex items-center gap-1 text-sm font-bold text-[#6B5CA5] hover:text-[#5B4A9E] transition-colors"
             >
               {nextLabel}
               <ChevronRight className="w-4 h-4" />
