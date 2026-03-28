@@ -6,6 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 function cleanArticleHtml(html, articleHtml) {
   let content = articleHtml
 
+  // Remove the article header (title, subtitle, prev/next nav) — we have our own
+  content = content.replace(/<header[^>]*class="[^"]*calendar-header[^"]*"[^>]*>[\s\S]*?<\/header>/gi, '')
+
   content = content.replace(/<script[\s\S]*?<\/script>/gi, '')
   content = content.replace(/<style[\s\S]*?<\/style>/gi, '')
   content = content.replace(/<iframe[\s\S]*?<\/iframe>/gi, '')

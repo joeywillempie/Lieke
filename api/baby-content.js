@@ -5,6 +5,9 @@ export const config = {
 function cleanArticleHtml(html, articleHtml) {
   let content = articleHtml
 
+  // Remove the article header (title, subtitle, prev/next nav) — we have our own
+  content = content.replace(/<header[^>]*class="[^"]*calendar-header[^"]*"[^>]*>[\s\S]*?<\/header>/gi, '')
+
   // Remove script, style, iframe, noscript tags
   content = content.replace(/<script[\s\S]*?<\/script>/gi, '')
   content = content.replace(/<style[\s\S]*?<\/style>/gi, '')
