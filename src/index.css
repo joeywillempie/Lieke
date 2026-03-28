@@ -194,6 +194,69 @@ button, a, [role="button"] {
 .baby-article [class*="social-share"],
 .baby-article [class*="newsletter"],
 .baby-article [class*="poll"],
+.baby-article [class*="mini-ad"],
+.baby-article [class*="advertisement"],
 .baby-article form {
   display: none !important;
+}
+
+/* Drie smalle afbeeldingen naast elkaar (babyfoto's van forumleden) */
+.baby-article .three-images-container,
+.baby-article .d-flex {
+  display: flex !important;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.baby-article .three-images-container > div,
+.baby-article .three-images-container > a {
+  flex: 1 1 30%;
+  min-width: 0;
+}
+
+.baby-article .three-images-container img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0.75rem;
+}
+
+/* Fix Bootstrap grid/float classes */
+.baby-article [class*="float-left"],
+.baby-article [class*="float-lef"] {
+  float: none !important;
+}
+
+.baby-article [class*="max-width-100"] {
+  max-width: 100% !important;
+}
+
+/* Zorg dat accordion content altijd zichtbaar is */
+.baby-article .card-simple {
+  margin-bottom: 0.75rem;
+  padding: 1rem;
+  background: #fef7ed;
+  border-radius: 1rem;
+  border: 1px solid #fed7aa;
+}
+
+.baby-article .item-header {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #292524;
+  margin-bottom: 0.5rem;
+}
+
+/* Symbolen/chevrons van accordions verbergen */
+.baby-article .item-header::after,
+.baby-article .item-header::before {
+  display: none !important;
+}
+
+/* Verberg verborgen content door Bootstrap collapse */
+.baby-article [style*="height: 0"],
+.baby-article [style*="display: none"] {
+  height: auto !important;
+  display: block !important;
+  overflow: visible !important;
 }
