@@ -1,0 +1,14 @@
+name: Send push notification reminders
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Handmatig triggeren mogelijk
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger notification check
+        run: |
+          curl -s -X GET "${{ secrets.APP_URL }}/api/send-notifications" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
