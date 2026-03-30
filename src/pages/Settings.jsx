@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { Printer, Download, CheckCircle, Loader2, Upload, AlertTriangle } from 'lucide-react'
+import { Printer, Download, CheckCircle, Loader2, Upload, AlertTriangle, Bell, BellOff } from 'lucide-react'
+import { isPushSupported, subscribeToPush, unsubscribeFromPush, isLocallyEnabled, getPermissionState } from '../lib/pushNotifications'
 
 export default function Settings() {
   const [exporting, setExporting] = useState(false)
@@ -8,6 +9,35 @@ export default function Settings() {
   const [importing, setImporting] = useState(false)
   const [importResult, setImportResult] = useState(null)
   const fileInputRef = useRef(null)
+
+  // Push notification state
+  const pushSupported = isPushSupported()
+  const [pushEnabled, setPushEnabled] = useState(isLocallyEnabled())
+  const [pushLoading, setPushLoading] = useState(false)
+  const [pushError, setPushError] = useState(null)
+  const [permState, setPermState] = useState(getPermissionState())
+
+  useEffect(() => {
+    setPermState(getPermissionState())
+  }, [pushEnabled])
+
+  async function togglePush() {
+    setPushLoading(true)
+    setPushError(null)
+    try {
+      if (pushEnabled) {
+        await unsubscribeFromPush()
+        setPushEnabled(false)
+      } else {
+        await subscribeToPush()
+        setPushEnabled(true)
+      }
+      setPermState(getPermissionState())
+    } catch (err) {
+      setPushError(err.message)
+    }
+    setPushLoading(false)
+  }
 
   async function exportJSON() {
     setExporting(true)
@@ -206,6 +236,69 @@ export default function Settings() {
     <div className="p-4 pb-8 max-w-lg mx-auto">
       <h1 className="font-serif font-bold text-2xl text-stone-800 mb-1">Instellingen</h1>
       <p className="text-stone-500 text-sm mb-6">Beheer je data en exporteer je tips.</p>
+
+      {/* Notificaties sectie */}
+      <div className="bg-white rounded-2xl shadow-md p-5 space-y-4 mb-5">
+        <h2 className="font-bold text-stone-700 text-base flex items-center gap-2">
+          🔔 Herinneringen
+        </h2>
+        <p className="text-stone-500 text-sm">
+          Ontvang een herinnering 24 uur en 2 uur voor kalenderafspraken.
+        </p>
+
+        {!pushSupported ? (
+          <div className="flex items-start gap-2 p-3 bg-amber-50 rounded-xl border border-amber-200">
+            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-700">
+              Push notificaties worden niet ondersteund op dit apparaat. Zorg dat je de app hebt toegevoegd aan je beginscherm via Safari.
+            </p>
+          </div>
+        ) : permState === 'denied' ? (
+          <div className="flex items-start gap-2 p-3 bg-red-50 rounded-xl border border-red-200">
+            <BellOff className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-red-700">
+              Notificaties zijn geblokkeerd. Ga naar Instellingen &gt; Lieke op je iPhone en zet meldingen aan.
+            </p>
+          </div>
+        ) : (
+          <button
+            onClick={togglePush}
+            disabled={pushLoading}
+            className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left group disabled:opacity-50 ${
+              pushEnabled
+                ? 'border-green-200 bg-green-50 hover:bg-green-100'
+                : 'border-orange-200 bg-orange-50 hover:bg-orange-100'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-full text-white flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform ${
+              pushEnabled ? 'bg-green-500' : 'bg-orange-400'
+            }`}>
+              {pushLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : pushEnabled ? (
+                <Bell className="w-5 h-5" />
+              ) : (
+                <BellOff className="w-5 h-5" />
+              )}
+            </div>
+            <div className="flex-1">
+              <div className={`font-bold text-sm ${pushEnabled ? 'text-green-700' : 'text-orange-700'}`}>
+                {pushEnabled ? 'Herinneringen aan' : 'Herinneringen uit'}
+              </div>
+              <div className={`text-xs ${pushEnabled ? 'text-green-500' : 'text-orange-500'}`}>
+                {pushEnabled ? 'Je ontvangt meldingen voor afspraken' : 'Tik om herinneringen in te schakelen'}
+              </div>
+            </div>
+          </button>
+        )}
+
+        {pushError && (
+          <div className="flex items-start gap-2 p-3 bg-red-50 rounded-xl border border-red-200">
+            <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <span className="text-xs text-red-700">{pushError}</span>
+          </div>
+        )}
+      </div>
 
       {/* Export sectie */}
       <div className="bg-white rounded-2xl shadow-md p-5 space-y-4">

@@ -8,3 +8,8 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+// Registreer push service worker als notificaties zijn ingeschakeld
+if ('serviceWorker' in navigator && localStorage.getItem('push-enabled') === 'true') {
+  navigator.serviceWorker.register('/sw-push.js').catch(() => {})
+}
