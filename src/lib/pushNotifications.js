@@ -32,15 +32,8 @@ export async function subscribeToPush() {
     throw new Error('Notificatie-toestemming geweigerd')
   }
 
-  // Wacht op service worker
+  // Wacht op service worker (de hoofd-SW bevat al de push handler)
   const registration = await navigator.serviceWorker.ready
-
-  // Registreer de push SW als scope
-  try {
-    await navigator.serviceWorker.register('/sw-push.js', { scope: '/' })
-  } catch {
-    // Al geregistreerd, geen probleem
-  }
 
   // Subscribe bij push service
   let subscription = await registration.pushManager.getSubscription()
