@@ -10,7 +10,6 @@ import BabyWeekDetail from './pages/BabyWeekDetail'
 import Settings from './pages/Settings'
 import Stats from './pages/Stats'
 import Kennisbank from './pages/Kennisbank'
-import KennisbankArticle from './pages/KennisbankArticle'
 import BirthdayNotification from './components/BirthdayNotification'
 
 // Search context
@@ -89,7 +88,6 @@ export default function App() {
               <Route path="/babykalender" element={<BabyCalendarPage />} />
               <Route path="/babykalender/:type/:num" element={<BabyWeekDetail />} />
               <Route path="/kennisbank" element={<Kennisbank />} />
-              <Route path="/kennisbank/:id" element={<KennisbankArticle />} />
               <Route path="/instellingen" element={<Settings />} />
               <Route path="/statistieken" element={<Stats />} />
             </Routes>

@@ -1,93 +1,136 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, X, ExternalLink, BookOpen, Filter, Loader2 } from 'lucide-react'
+import { BookOpen, ChevronDown, ChevronRight, ExternalLink, Loader2, Filter, X } from 'lucide-react'
 import { CATEGORIES } from '../constants/categories'
 
 const CATEGORY_CONFIG = {
-  'Slaap':                 { emoji: '😴', active: 'bg-indigo-500 text-white', inactive: 'text-indigo-700 hover:bg-indigo-100' },
-  'Voeding':               { emoji: '🥦', active: 'bg-green-500 text-white',  inactive: 'text-green-700 hover:bg-green-100' },
-  'Taal & ontwikkeling':   { emoji: '💬', active: 'bg-sky-500 text-white',    inactive: 'text-sky-700 hover:bg-sky-100' },
-  'Spel & stimulatie':     { emoji: '🎨', active: 'bg-yellow-500 text-white', inactive: 'text-yellow-700 hover:bg-yellow-100' },
-  'Gedrag & grenzen':      { emoji: '🦁', active: 'bg-orange-500 text-white', inactive: 'text-orange-700 hover:bg-orange-100' },
-  'Gezondheid':            { emoji: '❤️', active: 'bg-red-500 text-white',    inactive: 'text-red-700 hover:bg-red-100' },
-  'Veiligheid':            { emoji: '🛡️', active: 'bg-teal-500 text-white',   inactive: 'text-teal-700 hover:bg-teal-100' },
-  'School & leren':        { emoji: '📚', active: 'bg-purple-500 text-white', inactive: 'text-purple-700 hover:bg-purple-100' },
-  'Emoties & gehechtheid': { emoji: '🤗', active: 'bg-pink-500 text-white',   inactive: 'text-pink-700 hover:bg-pink-100' },
+  'Slaap':                 { emoji: '😴', bg: 'bg-indigo-50', border: 'border-indigo-200', accent: 'text-indigo-700', pill: 'bg-indigo-500 text-white' },
+  'Voeding':               { emoji: '🥦', bg: 'bg-green-50', border: 'border-green-200', accent: 'text-green-700', pill: 'bg-green-500 text-white' },
+  'Taal & ontwikkeling':   { emoji: '💬', bg: 'bg-sky-50', border: 'border-sky-200', accent: 'text-sky-700', pill: 'bg-sky-500 text-white' },
+  'Spel & stimulatie':     { emoji: '🎨', bg: 'bg-yellow-50', border: 'border-yellow-200', accent: 'text-yellow-700', pill: 'bg-yellow-500 text-white' },
+  'Gedrag & grenzen':      { emoji: '🦁', bg: 'bg-orange-50', border: 'border-orange-200', accent: 'text-orange-700', pill: 'bg-orange-500 text-white' },
+  'Gezondheid':            { emoji: '❤️', bg: 'bg-red-50', border: 'border-red-200', accent: 'text-red-700', pill: 'bg-red-500 text-white' },
+  'Veiligheid':            { emoji: '🛡️', bg: 'bg-teal-50', border: 'border-teal-200', accent: 'text-teal-700', pill: 'bg-teal-500 text-white' },
+  'School & leren':        { emoji: '📚', bg: 'bg-purple-50', border: 'border-purple-200', accent: 'text-purple-700', pill: 'bg-purple-500 text-white' },
+  'Emoties & gehechtheid': { emoji: '🤗', bg: 'bg-pink-50', border: 'border-pink-200', accent: 'text-pink-700', pill: 'bg-pink-500 text-white' },
 }
 
-const SOURCE_CONFIG = {
-  'HealthyChildren.org (AAP)': { short: 'AAP', color: 'bg-emerald-100 text-emerald-700', icon: '🏥' },
-  'Zero to Three':              { short: 'Zero to Three', color: 'bg-blue-100 text-blue-700', icon: '🧒' },
-  'CDC Child Development':      { short: 'CDC', color: 'bg-slate-100 text-slate-700', icon: '🏛️' },
-  'KellyMom':                   { short: 'KellyMom', color: 'bg-pink-100 text-pink-700', icon: '🍼' },
-  'BabyCenter':                 { short: 'BabyCenter', color: 'bg-sky-100 text-sky-700', icon: '👶' },
-  'What to Expect':             { short: 'What to Expect', color: 'bg-purple-100 text-purple-700', icon: '🤰' },
+const SOURCE_LABELS = {
+  'HealthyChildren.org (AAP)': 'AAP',
+  'Zero to Three': 'Zero to Three',
+  'CDC Child Development': 'CDC',
+  'KellyMom': 'KellyMom',
+  'BabyCenter': 'BabyCenter',
+  'What to Expect': 'What to Expect',
 }
 
 const YEAR_COLORS = [
-  'bg-rose-400', 'bg-orange-400', 'bg-amber-400', 'bg-yellow-400',
-  'bg-lime-400', 'bg-green-400', 'bg-emerald-400', 'bg-teal-400',
-  'bg-cyan-400', 'bg-sky-400', 'bg-violet-400',
+  'bg-rose-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
+  'bg-lime-500', 'bg-green-500', 'bg-emerald-500',
 ]
 
-// Cache articles globally so we only fetch once
-let articlesCache = null
+function TopicCard({ topic }) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="mb-2">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-start gap-2 text-left py-1.5 group"
+      >
+        {open
+          ? <ChevronDown className="w-4 h-4 text-stone-400 mt-0.5 flex-shrink-0" />
+          : <ChevronRight className="w-4 h-4 text-stone-400 mt-0.5 flex-shrink-0" />
+        }
+        <span className="text-sm font-bold text-stone-700 group-hover:text-violet-600 transition-colors">
+          {topic.topic}
+        </span>
+        <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full ml-auto flex-shrink-0">
+          {topic.sources.length} bron{topic.sources.length !== 1 ? 'nen' : ''}
+        </span>
+      </button>
+
+      {open && (
+        <div className="ml-6 space-y-2.5 pb-2 animate-slide-down">
+          {topic.advice.map((adv, i) => (
+            <div key={i} className="bg-white rounded-xl p-3 shadow-sm border border-stone-100">
+              <p className="text-sm text-stone-600 leading-relaxed mb-2">
+                {adv.text}
+              </p>
+              <a
+                href={adv.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-violet-500 hover:text-violet-700"
+                onClick={e => e.stopPropagation()}
+              >
+                {SOURCE_LABELS[adv.source] || adv.source}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function CategorySection({ category }) {
+  const [open, setOpen] = useState(false)
+  const cfg = CATEGORY_CONFIG[category.name] || { emoji: '📌', bg: 'bg-stone-50', border: 'border-stone-200', accent: 'text-stone-700', pill: 'bg-stone-500 text-white' }
+
+  return (
+    <div className={`rounded-2xl ${cfg.bg} border ${cfg.border} overflow-hidden`}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-2.5 px-4 py-3 text-left"
+      >
+        <span className="text-xl">{cfg.emoji}</span>
+        <span className={`font-serif font-bold text-base ${cfg.accent} flex-1`}>{category.name}</span>
+        <span className="text-xs text-stone-400">{category.topics.length} onderwerpen</span>
+        {open
+          ? <ChevronDown className="w-4 h-4 text-stone-400" />
+          : <ChevronRight className="w-4 h-4 text-stone-400" />
+        }
+      </button>
+
+      {open && (
+        <div className="px-4 pb-3 animate-slide-down">
+          {category.topics.map((topic, i) => (
+            <TopicCard key={i} topic={topic} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Kennisbank() {
-  const navigate = useNavigate()
-  const [articles, setArticles] = useState(articlesCache || [])
-  const [loading, setLoading] = useState(!articlesCache)
-  const [activeYear, setActiveYear] = useState('all')
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [activeYear, setActiveYear] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchOpen, setSearchOpen] = useState(false)
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
 
   useEffect(() => {
-    if (articlesCache) return
-    fetch('/kennisbank.json')
+    fetch('/kennisbank-samenvatting.json')
       .then(r => r.json())
-      .then(data => {
-        articlesCache = data
-        setArticles(data)
-        setLoading(false)
-      })
+      .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 
-  // Count articles per year
-  const yearCounts = useMemo(() => {
-    const counts = {}
-    for (let y = 0; y <= 6; y++) {
-      counts[y] = articles.filter(a => a.years.includes(y)).length
-    }
-    return counts
-  }, [])
+  const yearData = useMemo(() => {
+    if (!data) return null
+    return data.find(y => y.year === activeYear) || null
+  }, [data, activeYear])
 
-  // Filter articles
-  const filtered = useMemo(() => {
-    let result = articles
-
-    if (activeYear !== 'all') {
-      result = result.filter(a => a.years.includes(activeYear))
-    }
-
+  const categories = useMemo(() => {
+    if (!yearData) return []
     if (selectedCategory) {
-      result = result.filter(a => a.categories.includes(selectedCategory))
+      return yearData.categories.filter(c => c.name === selectedCategory)
     }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim()
-      result = result.filter(a =>
-        a.title.toLowerCase().includes(q) ||
-        a.preview.toLowerCase().includes(q) ||
-        a.source.toLowerCase().includes(q) ||
-        a.categories.some(c => c.toLowerCase().includes(q))
-      )
-    }
-
-    return result
-  }, [activeYear, selectedCategory, searchQuery])
+    return yearData.categories
+  }, [yearData, selectedCategory])
 
   return (
     <div className="pb-8">
@@ -102,64 +145,20 @@ export default function Kennisbank() {
             <Filter className="w-4 h-4 text-stone-500" />
           </button>
 
-          <button
-            onClick={() => setActiveYear('all')}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              activeYear === 'all'
-                ? 'bg-gradient-to-r from-violet-500 to-pink-500 text-white shadow-md scale-105'
-                : 'bg-white text-stone-600 shadow-sm hover:shadow-md'
-            }`}
-          >
-            Alles ({articles.length})
-          </button>
-
           {Array.from({ length: 7 }, (_, y) => (
             <button
               key={y}
-              onClick={() => setActiveYear(y === activeYear ? 'all' : y)}
+              onClick={() => setActiveYear(y)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 activeYear === y
                   ? `${YEAR_COLORS[y]} text-white shadow-md scale-105`
                   : 'bg-white text-stone-600 shadow-sm hover:shadow-md'
               }`}
             >
-              {y === 0 ? '0-1' : `${y}-${y+1}`} jr
-              <span className="ml-1 opacity-70">({yearCounts[y]})</span>
+              {y === 0 ? '0–1' : `${y}–${y+1}`} jr
             </button>
           ))}
-
-          {/* Zoek toggle */}
-          <button
-            onClick={() => { setSearchOpen(s => !s); if (searchOpen) setSearchQuery('') }}
-            className={`flex-shrink-0 p-1.5 rounded-xl transition-all ml-auto ${
-              searchOpen ? 'bg-violet-500 text-white shadow-sm' : 'bg-white text-stone-500 shadow-sm'
-            }`}
-          >
-            {searchOpen ? <X className="w-4 h-4" /> : <Search className="w-4 h-4" />}
-          </button>
         </div>
-
-        {/* Zoekbalk */}
-        {searchOpen && (
-          <div className="px-3 pb-2.5 animate-slide-down">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Zoek in kennisbank..."
-                autoFocus
-                className="w-full pl-9 pr-8 py-2 rounded-full bg-white border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <X className="w-3.5 h-3.5 text-stone-400" />
-                </button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Mobiel filter overlay */}
@@ -183,14 +182,15 @@ export default function Kennisbank() {
                 <span>🌈</span><span>Alle</span>
               </button>
               {CATEGORIES.map(cat => {
-                const cfg = CATEGORY_CONFIG[cat] || { emoji: '📌', active: 'bg-stone-500 text-white', inactive: 'text-stone-600 hover:bg-stone-100' }
+                const cfg = CATEGORY_CONFIG[cat]
+                if (!cfg) return null
                 const isSelected = selectedCategory === cat
                 return (
                   <button
                     key={cat}
                     onClick={() => { setSelectedCategory(isSelected ? null : cat); setMobileFilterOpen(false) }}
                     className={`text-left px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
-                      isSelected ? `${cfg.active} shadow-sm` : cfg.inactive
+                      isSelected ? `${cfg.pill} shadow-sm` : `${cfg.accent} hover:${cfg.bg}`
                     }`}
                   >
                     <span className="text-base leading-none">{cfg.emoji}</span>
@@ -204,7 +204,7 @@ export default function Kennisbank() {
       )}
 
       <div className="flex min-h-0">
-        {/* Sidebar categorieën (desktop) */}
+        {/* Sidebar (desktop) */}
         <aside className="hidden md:block w-44 flex-shrink-0 bg-white/70 border-r border-stone-100 backdrop-blur-sm">
           <div className="flex flex-col p-2 gap-0.5">
             <button
@@ -216,107 +216,64 @@ export default function Kennisbank() {
               <span>🌈</span><span>Alle</span>
             </button>
             {CATEGORIES.map(cat => {
-              const cfg = CATEGORY_CONFIG[cat] || { emoji: '📌', active: 'bg-stone-500 text-white', inactive: 'text-stone-600 hover:bg-stone-100' }
+              const cfg = CATEGORY_CONFIG[cat]
+              if (!cfg) return null
               const isSelected = selectedCategory === cat
-              const count = articles.filter(a => a.categories.includes(cat)).length
               return (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(isSelected ? null : cat)}
                   className={`text-left px-3 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
-                    isSelected ? `${cfg.active} shadow-sm` : cfg.inactive
+                    isSelected ? `${cfg.pill} shadow-sm` : `${cfg.accent} hover:${cfg.bg}`
                   }`}
                 >
                   <span className="text-base leading-none">{cfg.emoji}</span>
-                  <span className="leading-snug flex-1">{cat}</span>
-                  <span className="text-xs opacity-60">{count}</span>
+                  <span className="leading-snug">{cat}</span>
                 </button>
               )
             })}
           </div>
         </aside>
 
-        {/* Artikelen */}
+        {/* Content */}
         <div className="flex-1 min-w-0 p-3">
           {/* Header */}
-          <div className="flex items-center gap-2 mb-4">
-            <BookOpen className="w-5 h-5 text-violet-500" />
-            <h1 className="font-serif font-bold text-stone-800 text-lg">Kennisbank</h1>
-            <span className="text-xs text-stone-400 font-bold bg-stone-100 px-2 py-0.5 rounded-full">
-              {filtered.length} artikelen
-            </span>
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-1">
+              <BookOpen className="w-5 h-5 text-violet-500" />
+              <h1 className="font-serif font-bold text-stone-800 text-lg">Kennisbank</h1>
+            </div>
+            {yearData && (
+              <p className="text-xs text-stone-400 ml-7">
+                {yearData.label} — samengevat uit {yearData.categories.reduce((s, c) => s + c.article_count, 0)} artikelen van betrouwbare bronnen
+              </p>
+            )}
           </div>
 
           {loading ? (
             <div className="flex justify-center py-16">
               <Loader2 className="w-6 h-6 animate-spin text-violet-400" />
             </div>
-          ) : filtered.length === 0 ? (
+          ) : categories.length === 0 ? (
             <div className="py-12 text-center">
               <p className="text-3xl mb-2">📚</p>
-              <p className="text-stone-500 text-sm">Geen artikelen gevonden</p>
-              <button
-                onClick={() => { setActiveYear('all'); setSelectedCategory(null); setSearchQuery('') }}
-                className="text-sm text-violet-500 underline font-bold mt-2"
-              >
-                Filters wissen
-              </button>
+              <p className="text-stone-500 text-sm">Geen adviezen voor deze selectie</p>
             </div>
           ) : (
-            <div className="space-y-2.5">
-              {filtered.map(article => {
-                const srcCfg = SOURCE_CONFIG[article.source] || { short: article.source, color: 'bg-stone-100 text-stone-600', icon: '📄' }
-                return (
-                  <div
-                    key={article.id}
-                    onClick={() => navigate(`/kennisbank/${article.id}`)}
-                    className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer p-4 active:scale-[0.99] border-l-[3px] border-violet-300"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1 min-w-0">
-                        {/* Bron + categorie badges */}
-                        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${srcCfg.color}`}>
-                            {srcCfg.icon} {srcCfg.short}
-                          </span>
-                          {article.categories.slice(0, 2).map(cat => {
-                            const cfg = CATEGORY_CONFIG[cat]
-                            return cfg ? (
-                              <span key={cat} className="text-xs font-bold text-stone-400">
-                                {cfg.emoji} {cat}
-                              </span>
-                            ) : null
-                          })}
-                        </div>
-
-                        {/* Titel */}
-                        <h3 className="font-serif font-bold text-stone-800 text-sm leading-snug line-clamp-2 mb-1.5">
-                          {article.title}
-                        </h3>
-
-                        {/* Preview tekst */}
-                        <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">
-                          {article.preview}
-                        </p>
-
-                        {/* Leeftijd */}
-                        <div className="flex items-center gap-1.5 mt-2">
-                          <span className="text-[10px] font-bold text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded-full">
-                            {article.age_range === '0-1' ? '0-1 jaar' :
-                             article.age_range === '0-3' ? '0-3 jaar' :
-                             article.age_range === '0-6' ? '0-6 jaar' :
-                             `${article.age_range} jaar`}
-                          </span>
-                        </div>
-                      </div>
-
-                      <ExternalLink className="w-4 h-4 text-stone-300 flex-shrink-0 mt-1" />
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="space-y-3">
+              {categories.map(cat => (
+                <CategorySection key={cat.name} category={cat} />
+              ))}
             </div>
           )}
+
+          {/* Footer disclaimer */}
+          <div className="mt-6 px-1">
+            <p className="text-[11px] text-stone-400 leading-relaxed bg-stone-50 rounded-xl p-3">
+              Samengevat uit artikelen van AAP, Zero to Three, CDC, KellyMom, BabyCenter en What to Expect.
+              Raadpleeg altijd je kinderarts of consultatiebureau voor persoonlijk advies.
+            </p>
+          </div>
         </div>
       </div>
     </div>
