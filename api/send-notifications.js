@@ -63,13 +63,21 @@ export default async function handler(req, res) {
       const [eventH, eventM] = eventTime.split(':').map(Number)
 
       // Maak een Date object voor het event in Amsterdam tijd
-      // We construeren het als UTC en compenseren voor CET/CEST
       const eventDateStr = `${event.date}T${String(eventH).padStart(2, '0')}:${String(eventM).padStart(2, '0')}:00`
 
-      // Gebruik de server-locale (Vercel draait in UTC)
-      // Amsterdam = UTC+1 (winter) of UTC+2 (zomer)
-      // Eenvoudige benadering: gebruik een vaste offset
-      const eventDate = new Date(eventDateStr + '+01:00') // CET
+      // Bepaal of het zomertijd (CEST) of wintertijd (CET) is
+      // Zomertijd: laatste zondag maart t/m laatste zondag oktober
+      const [eYear, eMonth, eDay] = event.date.split('-').map(Number)
+      const marchLast = new Date(eYear, 2, 31)
+      const marchSwitch = 31 - marchLast.getDay() // laatste zondag in maart
+      const octLast = new Date(eYear, 9, 31)
+      const octSwitch = 31 - octLast.getDay() // laatste zondag in oktober
+      const isCEST = (eMonth > 3 && eMonth < 10) ||
+        (eMonth === 3 && eDay >= marchSwitch) ||
+        (eMonth === 10 && eDay < octSwitch)
+      const offset = isCEST ? '+02:00' : '+01:00'
+
+      const eventDate = new Date(eventDateStr + offset)
 
       const diffMs = eventDate.getTime() - now.getTime()
       const diffHours = diffMs / (1000 * 60 * 60)
