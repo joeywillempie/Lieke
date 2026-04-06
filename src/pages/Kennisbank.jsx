@@ -1,106 +1,77 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { BookOpen, ChevronDown, ChevronRight, ExternalLink, Loader2, Filter, X } from 'lucide-react'
+import { BookOpen, ExternalLink, Loader2, Filter, X } from 'lucide-react'
 import { CATEGORIES } from '../constants/categories'
 
 const CATEGORY_CONFIG = {
-  'Slaap':                 { emoji: '😴', bg: 'bg-indigo-50', border: 'border-indigo-200', accent: 'text-indigo-700', pill: 'bg-indigo-500 text-white' },
-  'Voeding':               { emoji: '🥦', bg: 'bg-green-50', border: 'border-green-200', accent: 'text-green-700', pill: 'bg-green-500 text-white' },
-  'Taal & ontwikkeling':   { emoji: '💬', bg: 'bg-sky-50', border: 'border-sky-200', accent: 'text-sky-700', pill: 'bg-sky-500 text-white' },
-  'Spel & stimulatie':     { emoji: '🎨', bg: 'bg-yellow-50', border: 'border-yellow-200', accent: 'text-yellow-700', pill: 'bg-yellow-500 text-white' },
-  'Gedrag & grenzen':      { emoji: '🦁', bg: 'bg-orange-50', border: 'border-orange-200', accent: 'text-orange-700', pill: 'bg-orange-500 text-white' },
-  'Gezondheid':            { emoji: '❤️', bg: 'bg-red-50', border: 'border-red-200', accent: 'text-red-700', pill: 'bg-red-500 text-white' },
-  'Veiligheid':            { emoji: '🛡️', bg: 'bg-teal-50', border: 'border-teal-200', accent: 'text-teal-700', pill: 'bg-teal-500 text-white' },
-  'School & leren':        { emoji: '📚', bg: 'bg-purple-50', border: 'border-purple-200', accent: 'text-purple-700', pill: 'bg-purple-500 text-white' },
-  'Emoties & gehechtheid': { emoji: '🤗', bg: 'bg-pink-50', border: 'border-pink-200', accent: 'text-pink-700', pill: 'bg-pink-500 text-white' },
+  'Slaap':                 { emoji: '😴', bg: 'bg-indigo-50', border: 'border-indigo-200', accent: 'text-indigo-700', pill: 'bg-indigo-500 text-white', gradient: 'from-indigo-500 to-blue-500' },
+  'Voeding':               { emoji: '🥦', bg: 'bg-green-50', border: 'border-green-200', accent: 'text-green-700', pill: 'bg-green-500 text-white', gradient: 'from-green-500 to-emerald-500' },
+  'Taal & ontwikkeling':   { emoji: '💬', bg: 'bg-sky-50', border: 'border-sky-200', accent: 'text-sky-700', pill: 'bg-sky-500 text-white', gradient: 'from-sky-500 to-blue-500' },
+  'Spel & stimulatie':     { emoji: '🎨', bg: 'bg-amber-50', border: 'border-amber-200', accent: 'text-amber-700', pill: 'bg-amber-500 text-white', gradient: 'from-amber-500 to-yellow-500' },
+  'Gedrag & grenzen':      { emoji: '🦁', bg: 'bg-orange-50', border: 'border-orange-200', accent: 'text-orange-700', pill: 'bg-orange-500 text-white', gradient: 'from-orange-500 to-red-500' },
+  'Gezondheid':            { emoji: '❤️', bg: 'bg-red-50', border: 'border-red-200', accent: 'text-red-700', pill: 'bg-red-500 text-white', gradient: 'from-red-500 to-rose-500' },
+  'Veiligheid':            { emoji: '🛡️', bg: 'bg-teal-50', border: 'border-teal-200', accent: 'text-teal-700', pill: 'bg-teal-500 text-white', gradient: 'from-teal-500 to-cyan-500' },
+  'School & leren':        { emoji: '📚', bg: 'bg-purple-50', border: 'border-purple-200', accent: 'text-purple-700', pill: 'bg-purple-500 text-white', gradient: 'from-purple-500 to-violet-500' },
+  'Emoties & gehechtheid': { emoji: '🤗', bg: 'bg-pink-50', border: 'border-pink-200', accent: 'text-pink-700', pill: 'bg-pink-500 text-white', gradient: 'from-pink-500 to-rose-500' },
 }
 
-const SOURCE_LABELS = {
-  'HealthyChildren.org (AAP)': 'AAP',
-  'Zero to Three': 'Zero to Three',
-  'CDC Child Development': 'CDC',
-  'KellyMom': 'KellyMom',
-  'BabyCenter': 'BabyCenter',
-  'What to Expect': 'What to Expect',
-}
-
-const YEAR_COLORS = [
-  'bg-rose-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-  'bg-lime-500', 'bg-green-500', 'bg-emerald-500',
+const AGE_TABS = [
+  { key: 'baby', label: '0–1 jaar', emoji: '👶', color: 'bg-rose-500' },
+  { key: 'peuter', label: '1–3 jaar', emoji: '🧒', color: 'bg-amber-500' },
+  { key: 'kleuter', label: '3–6 jaar', emoji: '🎒', color: 'bg-green-500' },
 ]
 
-function TopicCard({ topic }) {
-  const [open, setOpen] = useState(false)
+function NarrativeCard({ category }) {
+  const [expanded, setExpanded] = useState(false)
+  const cfg = CATEGORY_CONFIG[category.name] || { emoji: '📌', bg: 'bg-stone-50', border: 'border-stone-200', accent: 'text-stone-700', gradient: 'from-stone-500 to-gray-500' }
+
+  const text = category.narrative || ''
+  const isLong = text.length > 300
+  const displayText = expanded || !isLong ? text : text.slice(0, 280) + '...'
 
   return (
-    <div className="mb-2">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-start gap-2 text-left py-1.5 group"
-      >
-        {open
-          ? <ChevronDown className="w-4 h-4 text-stone-400 mt-0.5 flex-shrink-0" />
-          : <ChevronRight className="w-4 h-4 text-stone-400 mt-0.5 flex-shrink-0" />
-        }
-        <span className="text-sm font-bold text-stone-700 group-hover:text-violet-600 transition-colors">
-          {topic.topic}
-        </span>
-        <span className="text-[10px] text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded-full ml-auto flex-shrink-0">
-          {topic.sources.length} bron{topic.sources.length !== 1 ? 'nen' : ''}
-        </span>
-      </button>
+    <div className={`rounded-2xl overflow-hidden shadow-sm border ${cfg.border}`}>
+      {/* Header */}
+      <div className={`bg-gradient-to-r ${cfg.gradient} px-4 py-3 flex items-center gap-2.5`}>
+        <span className="text-2xl">{cfg.emoji}</span>
+        <h2 className="font-serif font-bold text-white text-base">{category.name}</h2>
+      </div>
 
-      {open && (
-        <div className="ml-6 space-y-2.5 pb-2 animate-slide-down">
-          {topic.advice.map((adv, i) => (
-            <div key={i} className="bg-white rounded-xl p-3 shadow-sm border border-stone-100">
-              <p className="text-sm text-stone-600 leading-relaxed mb-2">
-                {adv.text}
-              </p>
-              <a
-                href={adv.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-violet-500 hover:text-violet-700"
-                onClick={e => e.stopPropagation()}
-              >
-                {SOURCE_LABELS[adv.source] || adv.source}
-                <ExternalLink className="w-3 h-3" />
-              </a>
+      {/* Narrative text */}
+      <div className={`${cfg.bg} px-4 py-4`}>
+        <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-line">
+          {displayText}
+        </p>
+
+        {isLong && !expanded && (
+          <button
+            onClick={() => setExpanded(true)}
+            className={`mt-2 text-sm font-bold ${cfg.accent} hover:underline`}
+          >
+            Lees meer
+          </button>
+        )}
+
+        {/* Sources */}
+        {category.sources?.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-stone-200/50">
+            <p className="text-[11px] text-stone-400 font-bold mb-1.5">Bronnen:</p>
+            <div className="flex flex-wrap gap-1.5">
+              {category.sources.map((src, i) => (
+                <a
+                  key={i}
+                  href={src.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white text-[11px] font-bold text-violet-600 hover:bg-violet-50 transition-colors shadow-sm"
+                >
+                  {src.label}
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function CategorySection({ category }) {
-  const [open, setOpen] = useState(false)
-  const cfg = CATEGORY_CONFIG[category.name] || { emoji: '📌', bg: 'bg-stone-50', border: 'border-stone-200', accent: 'text-stone-700', pill: 'bg-stone-500 text-white' }
-
-  return (
-    <div className={`rounded-2xl ${cfg.bg} border ${cfg.border} overflow-hidden`}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-2.5 px-4 py-3 text-left"
-      >
-        <span className="text-xl">{cfg.emoji}</span>
-        <span className={`font-serif font-bold text-base ${cfg.accent} flex-1`}>{category.name}</span>
-        <span className="text-xs text-stone-400">{category.topics.length} onderwerpen</span>
-        {open
-          ? <ChevronDown className="w-4 h-4 text-stone-400" />
-          : <ChevronRight className="w-4 h-4 text-stone-400" />
-        }
-      </button>
-
-      {open && (
-        <div className="px-4 pb-3 animate-slide-down">
-          {category.topics.map((topic, i) => (
-            <TopicCard key={i} topic={topic} />
-          ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -108,33 +79,33 @@ function CategorySection({ category }) {
 export default function Kennisbank() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [activeYear, setActiveYear] = useState(0)
+  const [activeAge, setActiveAge] = useState('baby')
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false)
 
   useEffect(() => {
-    fetch('/kennisbank-samenvatting.json')
+    fetch('/kennisbank-verhalen.json')
       .then(r => r.json())
       .then(d => { setData(d); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 
-  const yearData = useMemo(() => {
+  const ageData = useMemo(() => {
     if (!data) return null
-    return data.find(y => y.year === activeYear) || null
-  }, [data, activeYear])
+    return data.find(d => d.age_group === activeAge) || null
+  }, [data, activeAge])
 
   const categories = useMemo(() => {
-    if (!yearData) return []
+    if (!ageData) return []
     if (selectedCategory) {
-      return yearData.categories.filter(c => c.name === selectedCategory)
+      return ageData.categories.filter(c => c.name === selectedCategory)
     }
-    return yearData.categories
-  }, [yearData, selectedCategory])
+    return ageData.categories
+  }, [ageData, selectedCategory])
 
   return (
     <div className="pb-8">
-      {/* Jaar-navigatie */}
+      {/* Leeftijd-navigatie */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-stone-100 sticky top-[52px] z-[5]">
         <div className="flex items-center gap-1.5 px-3 py-2.5 overflow-x-auto no-scrollbar">
           {/* Filter knop (mobiel) */}
@@ -145,17 +116,18 @@ export default function Kennisbank() {
             <Filter className="w-4 h-4 text-stone-500" />
           </button>
 
-          {Array.from({ length: 7 }, (_, y) => (
+          {AGE_TABS.map(tab => (
             <button
-              key={y}
-              onClick={() => setActiveYear(y)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                activeYear === y
-                  ? `${YEAR_COLORS[y]} text-white shadow-md scale-105`
+              key={tab.key}
+              onClick={() => setActiveAge(tab.key)}
+              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-1.5 ${
+                activeAge === tab.key
+                  ? `${tab.color} text-white shadow-md scale-105`
                   : 'bg-white text-stone-600 shadow-sm hover:shadow-md'
               }`}
             >
-              {y === 0 ? '0–1' : `${y}–${y+1}`} jr
+              <span>{tab.emoji}</span>
+              {tab.label}
             </button>
           ))}
         </div>
@@ -243,9 +215,9 @@ export default function Kennisbank() {
               <BookOpen className="w-5 h-5 text-violet-500" />
               <h1 className="font-serif font-bold text-stone-800 text-lg">Kennisbank</h1>
             </div>
-            {yearData && (
+            {ageData && (
               <p className="text-xs text-stone-400 ml-7">
-                {yearData.label} — samengevat uit {yearData.categories.reduce((s, c) => s + c.article_count, 0)} artikelen van betrouwbare bronnen
+                {ageData.age_label} — samengevat uit honderden artikelen van betrouwbare bronnen
               </p>
             )}
           </div>
@@ -260,9 +232,9 @@ export default function Kennisbank() {
               <p className="text-stone-500 text-sm">Geen adviezen voor deze selectie</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {categories.map(cat => (
-                <CategorySection key={cat.name} category={cat} />
+                <NarrativeCard key={cat.name} category={cat} />
               ))}
             </div>
           )}
